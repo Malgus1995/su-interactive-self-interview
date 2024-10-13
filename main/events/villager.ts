@@ -9,7 +9,7 @@ import { RpgEvent, EventData, RpgPlayer } from '@rpgjs/server'
 })
 export default class VillagerEvent extends RpgEvent {
     onInit() {
-        this.setGraphic('female')
+        this.setGraphic('hero')
     }
     async onAction(player: RpgPlayer) {
         await player.showText('I give you 10 gold.', {

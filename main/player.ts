@@ -2,7 +2,7 @@ import { RpgPlayer, type RpgPlayerHooks, Control, Components } from '@rpgjs/serv
 
 const player: RpgPlayerHooks = {
     onConnected(player: RpgPlayer) {
-        player.name = 'YourName'
+        player.name = 'You'
         player.setComponentsTop(Components.text('{name}'))
     },
     onInput(player: RpgPlayer, { input }) {
@@ -14,11 +14,8 @@ const player: RpgPlayerHooks = {
         if (player.getVariable('AFTER_INTRO')) {
             return
         }
-        await player.showText('Welcome to the start of RPGJS. Short presentation of the structure:')
-        await player.showText('1. Open the map src/modules/main/server/maps/tmx/samplemap.tmx with Tiled Map Editor !')
-        await player.showText('2. All the modules are in src/modules/index.ts, it is a suite of systems to make a complete set. Remove modules or add some!')
-        await player.showText('3. The global configuration is done in src/config')
-        await player.showText('And, please, support the project on github https://github.com/RSamaium/RPG-JS ! :)')
+        await player.showText('저의 자기소개 페이지에 오신걸 환영합니다.')
+        await player.showText('화면에 나와 있는 물체들을 클릭해 보세요. 다 둘러 보셨으면 오른쪽 출구를 클릭하여 이동해 주세요.')
         player.setVariable('AFTER_INTRO', true)
     }
 }
