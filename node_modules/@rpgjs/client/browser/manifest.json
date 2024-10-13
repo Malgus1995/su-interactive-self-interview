@@ -1,0 +1,21 @@
+{
+  "_index-ba657126.js": {
+    "dynamicImports": [
+      "src/Gui/React.ts"
+    ],
+    "file": "index-ba657126.js"
+  },
+  "src/Gui/React.ts": {
+    "file": "React-ece4b906.js",
+    "imports": [
+      "_index-ba657126.js"
+    ],
+    "isDynamicEntry": true,
+    "src": "src/Gui/React.ts"
+  },
+  "src/index.ts": {
+    "file": "rpg.client.umd.cjs",
+    "isEntry": true,
+    "src": "src/index.ts"
+  }
+}

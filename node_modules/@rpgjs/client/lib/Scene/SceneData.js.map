@@ -1,0 +1,1 @@
+{"version":3,"file":"SceneData.js","sourceRoot":"","sources":["../../src/Scene/SceneData.ts"],"names":[],"mappings":"AAMA,MAAM,UAAU,SAAS,CAAC,OAAO;IAC7B,OAAO,CAAC,MAAM,EAAE,EAAE;QACd,KAAK,IAAI,GAAG,IAAI,OAAO,EAAE;YACrB,MAAM,CAAC,SAAS,CAAC,GAAG,CAAC,GAAG,OAAO,CAAC,GAAG,CAAC,CAAA;SACvC;IACL,CAAC,CAAA;AACL,CAAC"}

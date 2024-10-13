@@ -1,0 +1,1 @@
+{"version":3,"file":"EventLayer.js","sourceRoot":"","sources":["../../src/Scene/EventLayer.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,SAAS,EAAE,MAAM,SAAS,CAAC;AAEpC,MAAM,OAAO,UAAW,SAAQ,SAAS;IACrC;QACI,KAAK,EAAE,CAAA;QACP,IAAI,CAAC,gBAAgB,GAAG,IAAI,CAAA;IAChC,CAAC;CACJ"}

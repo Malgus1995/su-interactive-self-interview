@@ -1,0 +1,1 @@
+{"version":3,"file":"Spritesheets.js","sourceRoot":"","sources":["../../src/Sprite/Spritesheets.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,aAAa,EAAE,MAAM,cAAc,CAAA;AAE5C,MAAM,CAAC,MAAM,YAAY,GAAqB,IAAI,GAAG,EAAE,CAAA;AAEvD,MAAM,UAAU,gBAAgB,CAAC,aAAa,EAAE,MAAuB;IACnE,OAAO,aAAa,CAAC,YAAY,EAAE,aAAa,EAAE,OAAO,EAAE,MAAM,CAAC,CAAA;AACtE,CAAC"}
