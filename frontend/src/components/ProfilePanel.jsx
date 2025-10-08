@@ -14,9 +14,7 @@ export default function ProfilePanel() {
     <div>
       <h2>{data.name}</h2>
       <p>{data.description}</p>
-      <p>
-        <strong>Skills:</strong> {data.skills.join(", ")}
-      </p>
+      <a href="https://mgsuj.tistory.com" target="_blank">SU Library 블로그</a>
     </div>
   );
 }

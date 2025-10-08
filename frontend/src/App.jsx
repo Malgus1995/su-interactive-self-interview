@@ -5,7 +5,7 @@ import "./App.css";
 function App() {
   return (
     <div className="App">
-      <h1>🎮 Welcome to Sujung's Interactive Intro</h1>
+      <h1> Sujung's Interactive Interview</h1>
       <ProfilePanel />
       <IntroCanvas />
     </div>

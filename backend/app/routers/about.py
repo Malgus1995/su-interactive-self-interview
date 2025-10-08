@@ -5,7 +5,6 @@ router = APIRouter()
 @router.get("/about")
 def get_about():
     return {
-        "name": "정수정",
-        "description": "FastAPI와 React로 만든 자기소개 인터랙티브 페이지!",
-        "skills": ["Python", "FastAPI", "React", "Phaser"]
+         "description":
+            "나솔 13기 광수님의 셀소.com을 보고 감명받아서 만든 저의 셀프 소개 페이지입니다.",
     }
