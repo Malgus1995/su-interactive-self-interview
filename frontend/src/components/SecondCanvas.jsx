@@ -1,17 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Phaser from "phaser";
-import mapJson from "/src/assets/start_map_json.json";
+import secondRoomJson from "/src/assets/second_room.json";
 import playerPng from "/src/assets/tiles/player.png";
-import SecondCanvas from "./SecondCanvas";
 
-export default function IntroCanvas() {
+export default function SecondCanvas() {
   const gameRef = useRef(null);
-  const [enteredSecondRoom, setEnteredSecondRoom] = useState(false);
 
   useEffect(() => {
-    if (!gameRef.current || enteredSecondRoom) return;
+    if (!gameRef.current) return;
 
-    let destroyed = false; // ✅ 중복 destroy 방지 플래그
+    let destroyed = false;
 
     const config = {
       type: Phaser.AUTO,
@@ -22,8 +20,8 @@ export default function IntroCanvas() {
       scale: { mode: Phaser.Scale.RESIZE },
       scene: {
         preload() {
-          this.load.tilemapTiledJSON("start_map", mapJson);
-          mapJson.tilesets.forEach((ts) => {
+          this.load.tilemapTiledJSON("second_room", secondRoomJson);
+          secondRoomJson.tilesets.forEach((ts) => {
             this.load.image(`tileset_${ts.name}`, `/src/assets/${ts.image}`);
           });
           this.load.spritesheet("player", playerPng, {
@@ -33,7 +31,8 @@ export default function IntroCanvas() {
         },
 
         create() {
-          const map = this.make.tilemap({ key: "start_map" });
+          const map = this.make.tilemap({ key: "second_room" });
+
           const sets = map.tilesets
             .map((ts) => {
               const key = `tileset_${ts.name}`;
@@ -50,19 +49,68 @@ export default function IntroCanvas() {
             layers[l.name] = layer;
           });
 
-          const spawn = map.findObject("interactables", (o) => o.name === "init_point");
-          const startDoor = map.findObject("interactables", (o) => o.name === "start_door");
+          // ✅ init_point 기준 위치 지정 (없으면 중앙 fallback)
+          let spawn = map.findObject("interactions", (o) => o.name === "init_point");
+          if (!spawn) spawn = { x: map.widthInPixels / 2, y: map.heightInPixels - 64 };
 
-          const player = this.physics.add.sprite(spawn.x, spawn.y - 16, "player");
+          const player = this.physics.add.sprite(spawn.x, spawn.y, "player");
           player.setOrigin(0.5, 1);
           player.setCollideWorldBounds(false);
 
-          if (layers["시작점_가구"]) {
-            layers["시작점_가구"].setCollisionByExclusion([-1]);
-            this.physics.add.collider(player, layers["시작점_가구"]);
-          }
+          // ✅ 카메라 세팅 (밑 중심 기준)
+          const cam = this.cameras.main;
+          cam.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+          cam.startFollow(player, true, 0.1, 0.1);
+          cam.setBackgroundColor("rgba(0,0,0,0)");
 
-          // ✅ 이동 애니메이션 (SecondCanvas와 동일)
+          // ✅ 입력 세팅
+          const cursors = this.input.keyboard.createCursorKeys();
+          const moveSpeed = 150;
+          let moveTarget = null;
+
+          // ✅ 클릭 / 터치 이동
+          this.input.on("pointerdown", (pointer) => {
+            const world = pointer.positionToCamera(cam);
+            moveTarget = { x: world.x, y: world.y };
+          });
+
+          // ✅ 반응형 중앙 정렬 (하단 기준으로 자연스럽게)
+          const resizeAndCenter = () => {
+            const canvas = this.game.canvas;
+            if (!canvas) return;
+
+            const W = map.widthInPixels;
+            const H = map.heightInPixels;
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+
+            const scaleX = vw / W;
+            const scaleY = vh / (H * 0.8);
+            const zoom = Math.min(scaleX, scaleY) * 1.2;
+            cam.setZoom(zoom);
+
+            // 🔹 init_point 기준 하단 중심 보정
+            const spawnObj = map.findObject("interactions", (o) => o.name === "init_point");
+            if (spawnObj) {
+              cam.centerOn(spawnObj.x, spawnObj.y - 180); // ← 밑을 기준으로 위로 180px 띄움
+            } else {
+              cam.centerOn(W / 2, H - 180);
+            }
+
+            // 🔹 캔버스 중앙 고정
+            canvas.style.position = "absolute";
+            canvas.style.left = `${(vw - W * zoom) / 2}px`;
+            canvas.style.top = `${(vh - H * zoom) / 2}px`;
+            canvas.style.background = "transparent";
+          };
+
+          resizeAndCenter();
+          window.addEventListener("resize", resizeAndCenter);
+          this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+            window.removeEventListener("resize", resizeAndCenter);
+          });
+
+          // ✅ 애니메이션
           this.anims.create({
             key: "down",
             frames: this.anims.generateFrameNumbers("player", { start: 0, end: 2 }),
@@ -88,52 +136,13 @@ export default function IntroCanvas() {
             repeat: -1,
           });
 
-
-          const cursors = this.input.keyboard.createCursorKeys();
-          const cam = this.cameras.main;
-          cam.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-          cam.startFollow(player, true, 0.1, 0.1);
-          cam.setBackgroundColor("rgba(0,0,0,0)");
-
-          const treeLayer = layers["시작점_나무"];
-
-          let moveTarget = null;
-          const moveSpeed = 150;
-
-          this.input.on("pointerdown", (pointer) => {
-            const worldPoint = pointer.positionToCamera(cam);
-            moveTarget = { x: worldPoint.x, y: worldPoint.y };
-          });
-
-          const resizeAndCenter = () => {
-            const canvas = this.game.canvas;
-            if (!canvas) return;
-            const W = map.widthInPixels;
-            const H = map.heightInPixels;
-            const vw = window.innerWidth;
-            const vh = window.innerHeight;
-            const scaleX = vw / W;
-            const scaleY = vh / (H * 0.8);
-            const zoom = Math.min(scaleX, scaleY) * 1.2;
-            cam.setZoom(zoom);
-            cam.centerOn(W / 2, H / 2);
-            canvas.style.position = "absolute";
-            canvas.style.left = `${(vw - W * zoom) / 2}px`;
-            canvas.style.top = `${(vh - H * zoom) / 2}px`;
-            canvas.style.background = "transparent";
-          };
-          resizeAndCenter();
-          window.addEventListener("resize", resizeAndCenter);
-          this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-            window.removeEventListener("resize", resizeAndCenter);
-          });
-
-          // ✅ update 루프
+          // ✅ 업데이트 루프
           this.update = () => {
-            if (destroyed) return; // ✅ 파괴 후 업데이트 중단
+            if (destroyed) return;
 
             player.setVelocity(0);
 
+            // 키보드 이동
             if (cursors.left.isDown) {
               player.setVelocityX(-moveSpeed);
               player.anims.play("left", true);
@@ -150,7 +159,9 @@ export default function IntroCanvas() {
               player.setVelocityY(moveSpeed);
               player.anims.play("down", true);
               moveTarget = null;
-            } else if (moveTarget) {
+            }
+            // 클릭 이동
+            else if (moveTarget) {
               const dx = moveTarget.x - player.x;
               const dy = moveTarget.y - player.y;
               const dist = Math.sqrt(dx * dx + dy * dy);
@@ -169,35 +180,6 @@ export default function IntroCanvas() {
             } else {
               player.anims.stop();
             }
-
-            // ✅ 나무 투명
-            if (treeLayer) {
-              const playerRect = player.getBounds();
-              let overlapping = false;
-              treeLayer.forEachTile((tile) => {
-                if (tile.index === -1) return;
-                const tileRect = tile.getBounds();
-                if (Phaser.Geom.Intersects.RectangleToRectangle(playerRect, tileRect)) {
-                  overlapping = true;
-                }
-              });
-              treeLayer.setAlpha(overlapping ? 0.5 : 1);
-            }
-
-            // ✅ 문 진입
-            if (startDoor) {
-              const doorDist = Phaser.Math.Distance.Between(
-                player.x,
-                player.y,
-                startDoor.x,
-                startDoor.y
-              );
-              if (doorDist < 40 && !destroyed) {
-                destroyed = true; // ✅ 중복 방지
-                setEnteredSecondRoom(true); // React 상태 변경
-                this.game.destroy(true); // ✅ 안전한 destroy
-              }
-            }
           };
         },
 
@@ -208,13 +190,12 @@ export default function IntroCanvas() {
     };
 
     const game = new Phaser.Game(config);
+
     return () => {
       destroyed = true;
       game.destroy(true);
     };
-  }, [enteredSecondRoom]);
-
-  if (enteredSecondRoom) return <SecondCanvas />;
+  }, []);
 
   return (
     <div
