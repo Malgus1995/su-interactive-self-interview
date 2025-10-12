@@ -1,25 +1,3 @@
-/*import { useEffect, useState } from "react";
-import axios from "axios";
-
-export default function ProfilePanel() {
-  const [data, setData] = useState(null);
-
-  useEffect(() => {
-    axios.get("http://127.0.0.1:8000/about").then((res) => setData(res.data));
-  }, []);
-
-  if (!data) return <p>Loading profile...</p>;
-
-  return (
-    <div>
-      <h2>{data.name}</h2>
-      <p>{data.description}</p>
-      <a href="https://mgsuj.tistory.com" target="_blank">SU Library 블로그</a>
-    </div>
-  );
-}
-*/
-
 export default function ProfilePanel() {
   const data = {
     description:
@@ -27,13 +5,37 @@ export default function ProfilePanel() {
   };
 
   return (
-    <div style={{ textAlign: "center", marginBottom: "4px" }}>
-      <p style={{ margin: "0 0 2px 0" }}>{data.description}</p>
+    <div
+      style={{
+        textAlign: "center",
+        marginBottom: "4px",
+        position: "relative",
+        zIndex: 1,
+        transform: "translateZ(0)",
+        WebkitTransform: "translateZ(0)",
+      }}
+    >
+      <p
+        style={{
+          margin: "0 0 2px 0",
+          color: "#000", // ✅ 텍스트를 확실하게 검은색으로 고정
+          fontWeight: 400,
+          fontSize: "15px",
+          lineHeight: "1.5",
+        }}
+      >
+        {data.description}
+      </p>
+
       <a
         href="https://mgsuj.tistory.com"
         target="_blank"
         rel="noopener noreferrer"
-        style={{ color: "#5C7AEA", textDecoration: "none" }}
+        style={{
+          color: "#5C7AEA",
+          textDecoration: "none",
+          fontWeight: 500,
+        }}
       >
         SU Library 블로그
       </a>
