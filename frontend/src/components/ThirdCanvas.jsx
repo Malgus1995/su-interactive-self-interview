@@ -3,6 +3,7 @@ import Phaser from "phaser";
 import thirdRoomJson from "/src/assets/third_room.json";
 import playerPng from "/src/assets/tiles/player.png";
 import SecondCanvas from "./SecondCanvas";
+import LastCanvas from "./LastCanvas";
 
 // ✅ NPC 이미지 import
 import clararaPng from "/src/assets/clarara.png";
@@ -16,6 +17,7 @@ import europiaPng from "/src/assets/europia.png";
 export default function ThirdCanvas() {
   const gameRef = useRef(null);
   const [goBackSecondRoom, setGoBackSecondRoom] = useState(false);
+  const [enteredLastRoom, setEnteredLastRoom] = useState(false);
 
   useEffect(() => {
     if (!gameRef.current || goBackSecondRoom) return;
@@ -122,6 +124,11 @@ export default function ThirdCanvas() {
           const prevDoor = map.findObject(
             "interactions",
             (o) => o.name === "prev_point"
+          );
+
+          const nextDoor = map.findObject(
+            "interactions",
+            (o) => o.name === "next_point"
           );
 
           const player = this.physics.add.sprite(spawn.x, spawn.y - 16, "player");
@@ -311,6 +318,20 @@ export default function ThirdCanvas() {
               }, 150);
             }
           }
+          if (nextDoor) {
+              const nextX = nextDoor.x + (nextDoor.width || 0) / 2;
+              const nextY = nextDoor.y + (nextDoor.height || 32) / 2;
+              const doorDist = Phaser.Math.Distance.Between(player.x, player.y, nextX, nextY);
+              if (doorDist < 60 && !destroyed) {
+                console.log("🚪 next_point 접근 감지됨 → 마지막 방으로 이동");
+                destroyed = true;
+                setTimeout(() => {
+                  setEnteredLastRoom(true);
+                  this.game.destroy(true);
+                }, 150);
+              }
+          }
+          
 
           };
         },
@@ -329,6 +350,7 @@ export default function ThirdCanvas() {
   }, [goBackSecondRoom]);
 
   if (goBackSecondRoom) return <SecondCanvas />;
+  if (enteredLastRoom) return <LastCanvas />; 
 
   return (
     <div
