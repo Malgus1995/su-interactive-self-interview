@@ -4,14 +4,25 @@ import mapJson from "/src/assets/start_map_json.json";
 import playerPng from "/src/assets/tiles/player.png";
 import SecondCanvas from "./SecondCanvas";
 
-export default function IntroCanvas() {
+export default function IntroCanvas({ topOffset = 140 }) {
   const gameRef = useRef(null);
   const [enteredSecondRoom, setEnteredSecondRoom] = useState(false);
 
   useEffect(() => {
     if (!gameRef.current || enteredSecondRoom) return;
+    let destroyed = false;
+    let game;
 
-    let destroyed = false; // ✅ 중복 destroy 방지 플래그
+    // ✅ 반응형 세로형 (9:16) 비율 계산
+    const getBaseSize = () => {
+      const vh = window.innerHeight;
+      const vw = window.innerWidth;
+      const baseHeight = Math.min(vh * 0.8, 900); // 화면 높이 80% 사용
+      const baseWidth = Math.round(baseHeight * 9 / 16); // 9:16 비율 유지
+      return { baseWidth, baseHeight };
+    };
+
+    const { baseWidth, baseHeight } = getBaseSize();
 
     const config = {
       type: Phaser.AUTO,
@@ -19,9 +30,15 @@ export default function IntroCanvas() {
       pixelArt: true,
       transparent: true,
       physics: { default: "arcade", arcade: { debug: false } },
-      scale: { mode: Phaser.Scale.RESIZE },
+      scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: baseWidth,
+        height: baseHeight,
+      },
       scene: {
         preload() {
+          // ✅ 리소스 로드
           this.load.tilemapTiledJSON("start_map", mapJson);
           mapJson.tilesets.forEach((ts) => {
             this.load.image(`tileset_${ts.name}`, `/src/assets/${ts.image}`);
@@ -33,169 +50,143 @@ export default function IntroCanvas() {
         },
 
         create() {
+          // ✅ 타일맵 구성
           const map = this.make.tilemap({ key: "start_map" });
-          const sets = map.tilesets
-            .map((ts) => {
-              const key = `tileset_${ts.name}`;
-              return this.textures.exists(key)
-                ? map.addTilesetImage(ts.name, key)
-                : null;
-            })
-            .filter(Boolean);
+          const sets = map.tilesets.map((ts) =>
+            map.addTilesetImage(ts.name, `tileset_${ts.name}`)
+          );
 
           const layers = {};
           map.layers.forEach((l) => {
-            const layer = map.createLayer(l.name, sets, 0, 0);
-            layer.visible = true;
-            layers[l.name] = layer;
+            layers[l.name] = map.createLayer(l.name, sets, 0, 0);
           });
 
+          // ✅ 오브젝트 로드
           const spawn = map.findObject("interactables", (o) => o.name === "init_point");
           const startDoor = map.findObject("interactables", (o) => o.name === "start_door");
 
           const player = this.physics.add.sprite(spawn.x, spawn.y - 16, "player");
           player.setOrigin(0.5, 1);
-          player.setCollideWorldBounds(false);
 
-          if (layers["시작점_가구"]) {
-            layers["시작점_가구"].setCollisionByExclusion([-1]);
-            this.physics.add.collider(player, layers["시작점_가구"]);
-          }
+          // ✅ 애니메이션 정의
+          const directions = { down: [0, 2], right: [6, 8], left: [12, 14], up: [18, 20] };
+          Object.entries(directions).forEach(([key, [start, end]]) =>
+            this.anims.create({
+              key,
+              frames: this.anims.generateFrameNumbers("player", { start, end }),
+              frameRate: 8,
+              repeat: -1,
+            })
+          );
 
-          // ✅ 이동 애니메이션 (SecondCanvas와 동일)
-          this.anims.create({
-            key: "down",
-            frames: this.anims.generateFrameNumbers("player", { start: 0, end: 2 }),
-            frameRate: 8,
-            repeat: -1,
-          });
-          this.anims.create({
-            key: "left",
-            frames: this.anims.generateFrameNumbers("player", { start: 12, end: 14 }),
-            frameRate: 8,
-            repeat: -1,
-          });
-          this.anims.create({
-            key: "right",
-            frames: this.anims.generateFrameNumbers("player", { start: 6, end: 8 }),
-            frameRate: 8,
-            repeat: -1,
-          });
-          this.anims.create({
-            key: "up",
-            frames: this.anims.generateFrameNumbers("player", { start: 18, end: 20 }),
-            frameRate: 8,
-            repeat: -1,
-          });
-
-
+          // ✅ 카메라 & 이동
           const cursors = this.input.keyboard.createCursorKeys();
           const cam = this.cameras.main;
           cam.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
           cam.startFollow(player, true, 0.1, 0.1);
-          cam.setBackgroundColor("rgba(0,0,0,0)");
+          cam.setZoom(1.2);
 
-          const treeLayer = layers["시작점_나무"];
-
-          let moveTarget = null;
           const moveSpeed = 150;
+          let moveTarget = null;
 
           this.input.on("pointerdown", (pointer) => {
             const worldPoint = pointer.positionToCamera(cam);
             moveTarget = { x: worldPoint.x, y: worldPoint.y };
           });
 
-          const resizeAndCenter = () => {
-            const canvas = this.game.canvas;
-            if (!canvas) return;
-            const W = map.widthInPixels;
-            const H = map.heightInPixels;
-            const vw = window.innerWidth;
-            const vh = window.innerHeight;
-            const scaleX = vw / W;
-            const scaleY = vh / (H * 0.8);
-            const zoom = Math.min(scaleX, scaleY) * 1.2;
-            cam.setZoom(zoom);
-            cam.centerOn(W / 2, H / 2);
-            canvas.style.position = "absolute";
-            canvas.style.left = `${(vw - W * zoom) / 2}px`;
-            canvas.style.top = `${(vh - H * zoom) / 2}px`;
-            canvas.style.background = "transparent";
-          };
-          resizeAndCenter();
-          window.addEventListener("resize", resizeAndCenter);
-          this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-            window.removeEventListener("resize", resizeAndCenter);
-          });
+          // ✅ 충돌 및 투명 처리
+          const treeLayer = layers["시작점_나무"];
+          const furnitureLayer = layers["시작점_가구"];
 
-          // ✅ update 루프
-          this.update = () => {
-            if (destroyed) return; // ✅ 파괴 후 업데이트 중단
+          if (furnitureLayer) {
+            furnitureLayer.setCollisionByExclusion([-1]);
+            this.physics.add.collider(player, furnitureLayer);
+          }
 
-            player.setVelocity(0);
+          // ✅ 근처 나무만 반투명 처리
+          const checkTransparency = () => {
+            if (!treeLayer) return;
+            const px = player.x, py = player.y;
+            const tileX = Math.floor(px / 32);
+            const tileY = Math.floor(py / 32);
 
-            if (cursors.left.isDown) {
-              player.setVelocityX(-moveSpeed);
-              player.anims.play("left", true);
-              moveTarget = null;
-            } else if (cursors.right.isDown) {
-              player.setVelocityX(moveSpeed);
-              player.anims.play("right", true);
-              moveTarget = null;
-            } else if (cursors.up.isDown) {
-              player.setVelocityY(-moveSpeed);
-              player.anims.play("up", true);
-              moveTarget = null;
-            } else if (cursors.down.isDown) {
-              player.setVelocityY(moveSpeed);
-              player.anims.play("down", true);
-              moveTarget = null;
-            } else if (moveTarget) {
-              const dx = moveTarget.x - player.x;
-              const dy = moveTarget.y - player.y;
-              const dist = Math.sqrt(dx * dx + dy * dy);
-              if (dist < 5) {
-                moveTarget = null;
-                player.anims.stop();
-              } else {
-                const angle = Math.atan2(dy, dx);
-                player.setVelocity(Math.cos(angle) * moveSpeed, Math.sin(angle) * moveSpeed);
-                if (Math.abs(dx) > Math.abs(dy)) {
-                  player.anims.play(dx > 0 ? "right" : "left", true);
-                } else {
-                  player.anims.play(dy > 0 ? "down" : "up", true);
+            let overlapping = false;
+            for (let y = tileY - 1; y <= tileY + 1; y++) {
+              for (let x = tileX - 1; x <= tileX + 1; x++) {
+                const tile = treeLayer.getTileAt(x, y);
+                if (tile && tile.index !== -1) {
+                  const tileRect = tile.getBounds();
+                  const playerRect = player.getBounds();
+                  if (Phaser.Geom.Intersects.RectangleToRectangle(playerRect, tileRect)) {
+                    overlapping = true;
+                    break;
+                  }
                 }
               }
-            } else {
-              player.anims.stop();
+            }
+            treeLayer.setAlpha(overlapping ? 0.5 : 1);
+          };
+
+          // ✅ 업데이트 루프
+          this.update = () => {
+            if (destroyed) return;
+            player.setVelocity(0);
+
+            const moveByKey = () => {
+              if (cursors.left.isDown) {
+                player.setVelocityX(-moveSpeed);
+                player.anims.play("left", true);
+                return true;
+              } else if (cursors.right.isDown) {
+                player.setVelocityX(moveSpeed);
+                player.anims.play("right", true);
+                return true;
+              } else if (cursors.up.isDown) {
+                player.setVelocityY(-moveSpeed);
+                player.anims.play("up", true);
+                return true;
+              } else if (cursors.down.isDown) {
+                player.setVelocityY(moveSpeed);
+                player.anims.play("down", true);
+                return true;
+              }
+              return false;
+            };
+
+            if (!moveByKey()) {
+              if (moveTarget) {
+                const dx = moveTarget.x - player.x;
+                const dy = moveTarget.y - player.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 5) {
+                  moveTarget = null;
+                  player.anims.stop();
+                } else {
+                  const angle = Math.atan2(dy, dx);
+                  player.setVelocity(Math.cos(angle) * moveSpeed, Math.sin(angle) * moveSpeed);
+                  player.anims.play(
+                    Math.abs(dx) > Math.abs(dy)
+                      ? dx > 0
+                        ? "right"
+                        : "left"
+                      : dy > 0
+                      ? "down"
+                      : "up",
+                    true
+                  );
+                }
+              } else player.anims.stop();
             }
 
-            // ✅ 나무 투명
-            if (treeLayer) {
-              const playerRect = player.getBounds();
-              let overlapping = false;
-              treeLayer.forEachTile((tile) => {
-                if (tile.index === -1) return;
-                const tileRect = tile.getBounds();
-                if (Phaser.Geom.Intersects.RectangleToRectangle(playerRect, tileRect)) {
-                  overlapping = true;
-                }
-              });
-              treeLayer.setAlpha(overlapping ? 0.5 : 1);
-            }
+            checkTransparency();
 
             // ✅ 문 진입
             if (startDoor) {
-              const doorDist = Phaser.Math.Distance.Between(
-                player.x,
-                player.y,
-                startDoor.x,
-                startDoor.y
-              );
+              const doorDist = Phaser.Math.Distance.Between(player.x, player.y, startDoor.x, startDoor.y);
               if (doorDist < 40 && !destroyed) {
-                destroyed = true; // ✅ 중복 방지
-                setEnteredSecondRoom(true); // React 상태 변경
-                this.game.destroy(true); // ✅ 안전한 destroy
+                destroyed = true;
+                setEnteredSecondRoom(true);
+                this.game.destroy(true);
               }
             }
           };
@@ -207,24 +198,41 @@ export default function IntroCanvas() {
       },
     };
 
-    const game = new Phaser.Game(config);
+    game = new Phaser.Game(config);
+
+    // ✅ resize 최적화
+    let resizeTimer;
+    const handleResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (!game) return;
+        const { baseWidth, baseHeight } = getBaseSize();
+        game.scale.resize(baseWidth, baseHeight);
+        game.scale.refresh();
+      }, 200);
+    };
+    window.addEventListener("resize", handleResize);
+
     return () => {
       destroyed = true;
-      game.destroy(true);
+      if (game) game.destroy(true);
+      window.removeEventListener("resize", handleResize);
     };
   }, [enteredSecondRoom]);
 
   if (enteredSecondRoom) return <SecondCanvas />;
 
+  // ✅ 부모 컨테이너에서 주어진 공간 꽉 채우기
   return (
     <div
       ref={gameRef}
       style={{
-        position: "relative",
-        width: "100vw",
-        height: "100vh",
-        overflow: "hidden",
+        width: "100%",
+        height: "100%",
         background: "transparent",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
       }}
     />
   );

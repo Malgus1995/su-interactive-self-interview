@@ -40,7 +40,7 @@
          "name":"\uc2dc\uc791\uc810_\ubc14\ub2e5",
          "opacity":1,
          "type":"tilelayer",
-         "visible":false,
+         "visible":true,
          "width":32,
          "x":0,
          "y":0
@@ -83,7 +83,7 @@
          "name":"\uc2dc\uc791\uc810_\ubc14\ub2e5\ub370\ucf54",
          "opacity":1,
          "type":"tilelayer",
-         "visible":false,
+         "visible":true,
          "width":32,
          "x":0,
          "y":0
@@ -174,7 +174,7 @@
                 }],
          "opacity":1,
          "type":"objectgroup",
-         "visible":false,
+         "visible":true,
          "x":0,
          "y":0
         }, 
@@ -216,7 +216,7 @@
          "name":"\uc2dc\uc791\uc810_\uac00\uad6c",
          "opacity":1,
          "type":"tilelayer",
-         "visible":false,
+         "visible":true,
          "width":32,
          "x":0,
          "y":0
@@ -414,7 +414,7 @@
          "columns":40,
          "firstgid":105837,
          "image":"tiles\/gather_signage_1.2.png",
-         "imageheight":2560,
+         "imageheight":2529,
          "imagewidth":1280,
          "margin":0,
          "name":"gather_signage_1.2",
@@ -505,7 +505,7 @@
          "columns":96,
          "firstgid":133105,
          "image":"tiles\/Wall_unstable.png",
-         "imageheight":4576,
+         "imageheight":4560,
          "imagewidth":3072,
          "margin":0,
          "name":"Wall_unstable",
