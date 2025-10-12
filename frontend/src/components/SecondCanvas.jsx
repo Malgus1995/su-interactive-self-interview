@@ -176,24 +176,29 @@ export default function SecondCanvas() {
 
             // ✅ 이전 방 진입 트리거 (prev_room_point)
             if (prevDoor) {
-            // 💡 Phaser는 Tiled 오브젝트의 y가 "상단"이므로, 실제 위치보다 약간 내려줘야 함
-            const prevY = prevDoor.y - (prevDoor.height || 32) / 2;
-            const prevX = prevDoor.x + (prevDoor.width || 0) / 2;
+            // 중심점 계산
+            const prevX = prevDoor.x + (prevDoor.width || 32) / 2;
+            const prevY = prevDoor.y + (prevDoor.height || 32);
 
-            const prevDist = Phaser.Math.Distance.Between(
-                player.x,
-                player.y,
-                prevX,
-                prevY
-            );
+            // 💡 X방향으로도 넓게 감지 (좌우 여유 범위 추가)
+            const inHorizontalRange =
+                player.x > prevDoor.x - 64 && player.x < prevDoor.x + (prevDoor.width || 32) + 64;
 
-            if (prevDist < 3 && !destroyed) { // ← 거리도 약간 완화 (70→80)
+            // 💡 Y방향도 완화
+            const inVerticalRange = Math.abs(player.y - prevY) < 40;
+
+            if (inHorizontalRange && inVerticalRange && !destroyed) {
                 console.log("🚪 prev_room_point 접근 감지됨 → 첫 번째 방으로 이동");
                 destroyed = true;
+                setTimeout(() => {
                 setGoBackToFirstRoom(true);
                 this.game.destroy(true);
+                }, 100);
             }
             }
+
+
+
 
 
 

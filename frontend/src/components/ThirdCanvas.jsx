@@ -297,15 +297,21 @@ export default function ThirdCanvas() {
 
             // ✅ 복귀 트리거
             if (prevDoor) {
-              const doorDist = Phaser.Math.Distance.Between(player.x, player.y, prevDoor.x, prevDoor.y);
-              if (doorDist < 90 && !destroyed) {
-                destroyed = true;
-                setTimeout(() => {
-                  setGoBackSecondRoom(true);
-                  this.game.destroy(true);
-                }, 150);
-              }
+            // 💡 Phaser는 Tiled 오브젝트의 y가 상단이므로, 실제 위치를 약간 아래로 보정
+            const prevX = prevDoor.x + (prevDoor.width || 0) / 2;
+            const prevY = prevDoor.y - (prevDoor.height || 32) / 2;
+
+            const doorDist = Phaser.Math.Distance.Between(player.x, player.y, prevX, prevY);
+            if (doorDist < 30 && !destroyed) { // 거리도 약간 완화
+              console.log("🚪 prev_point 접근 감지됨 → 두 번째 방으로 이동");
+              destroyed = true;
+              setTimeout(() => {
+                setGoBackSecondRoom(true);
+                this.game.destroy(true);
+              }, 150);
             }
+          }
+
           };
         },
 
