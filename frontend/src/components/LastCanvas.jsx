@@ -16,10 +16,11 @@ export default function LastCanvas() {
     let game;
 
     const getBaseSize = () => {
-      const vh = window.innerHeight;
-      const baseHeight = Math.min(vh * 0.8, 900);
-      const baseWidth = Math.round((baseHeight * 9) / 16);
-      return { baseWidth, baseHeight };
+      const container = gameRef.current;
+      return {
+        baseWidth: container.clientWidth,
+        baseHeight: container.clientHeight,
+      };
     };
     const { baseWidth, baseHeight } = getBaseSize();
 
@@ -30,7 +31,7 @@ export default function LastCanvas() {
       transparent: true,
       physics: { default: "arcade", arcade: { debug: false } },
       scale: {
-        mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
         width: baseWidth,
         height: baseHeight,
@@ -38,10 +39,17 @@ export default function LastCanvas() {
       fps: { target: 60 },
       scene: {
         preload() {
-          this.load.tilemapTiledJSON("last_room", lastRoomJson);
-          this.load.spritesheet("player", playerPng, { frameWidth: 32, frameHeight: 32 });
-          this.load.spritesheet("su", suPng, { frameWidth: 32, frameHeight: 32 });
-          this.load.image("heart", heartImg);
+          // ✅ 캐시 존재 시 재로딩 방지
+          if (!this.cache.tilemap.exists("last_room"))
+            this.load.tilemapTiledJSON("last_room", lastRoomJson);
+
+          if (!this.textures.exists("player"))
+            this.load.spritesheet("player", playerPng, { frameWidth: 32, frameHeight: 32 });
+
+          if (!this.textures.exists("su"))
+            this.load.spritesheet("su", suPng, { frameWidth: 32, frameHeight: 32 });
+
+          if (!this.textures.exists("heart")) this.load.image("heart", heartImg);
 
           lastRoomJson.tilesets.forEach((ts) => {
             const key = `tileset_${ts.name}`;
@@ -53,7 +61,9 @@ export default function LastCanvas() {
 
         create() {
           const map = this.make.tilemap({ key: "last_room" });
-          const sets = map.tilesets.map((ts) => map.addTilesetImage(ts.name, `tileset_${ts.name}`));
+          const sets = map.tilesets.map((ts) =>
+            map.addTilesetImage(ts.name, `tileset_${ts.name}`)
+          );
 
           const layers = {};
           map.layers.forEach((l) => {
@@ -72,13 +82,13 @@ export default function LastCanvas() {
           const approachZoneObj = map.findObject("interactables", (o) => o.name === "approach_to_su");
           const prevDoor = map.findObject("interactables", (o) => o.name === "goto_init");
 
-          // ✅ 플레이어
+          // ✅ 플레이어 생성
           const player = this.physics.add.sprite(spawn.x, spawn.y, "player");
           player.setOrigin(0.5, 1);
           player.body.setSize(16, 20, true);
           collidableLayers.forEach((layer) => this.physics.add.collider(player, layer));
 
-          // ✅ su 캐릭터
+          // ✅ su 생성
           const su = this.physics.add.sprite(suPoint.x, suPoint.y, "su");
           su.setOrigin(0.5, 1);
           su.setDepth(5);
@@ -95,31 +105,34 @@ export default function LastCanvas() {
           // ✅ 애니메이션
           const dirs = { down: [0, 2], right: [6, 8], left: [12, 14], up: [18, 20] };
           Object.entries(dirs).forEach(([key, [s, e]]) => {
-            this.anims.create({
-              key: `player_${key}`,
-              frames: this.anims.generateFrameNumbers("player", { start: s, end: e }),
-              frameRate: 8,
-              repeat: -1,
-            });
+            if (!this.anims.exists(`player_${key}`)) {
+              this.anims.create({
+                key: `player_${key}`,
+                frames: this.anims.generateFrameNumbers("player", { start: s, end: e }),
+                frameRate: 8,
+                repeat: -1,
+              });
+            }
           });
 
           const heart = this.add.image(spawn.x, spawn.y - 64, "heart").setScale(1.2);
           heart.setScrollFactor(0);
 
-          // ✅ 이동 제어
+          // ✅ 이동 관련 변수
           const cursors = this.input.keyboard.createCursorKeys();
           const moveSpeed = 150;
           let moveTarget = null;
           let eventLock = false;
           let eventTriggered = false;
 
+          // ✅ 클릭 이동
           this.input.on("pointerdown", (p) => {
             if (eventLock) return;
             const world = p.positionToCamera(cam);
             moveTarget = { x: world.x, y: world.y };
           });
 
-          // ✅ Zone 생성
+          // ✅ 접근 이벤트 (approachZone)
           if (approachZoneObj) {
             const approachZone = this.add.zone(
               approachZoneObj.x + (approachZoneObj.width || 32) / 2,
@@ -131,35 +144,34 @@ export default function LastCanvas() {
             approachZone.body.setAllowGravity(false);
             approachZone.body.moves = false;
 
-            // ✅ overlap 이벤트 등록
             this.physics.add.overlap(player, approachZone, () => {
               if (!eventTriggered) {
                 eventTriggered = true;
                 eventLock = true;
+                moveTarget = null; // ✅ 기존 이동 목표 완전 초기화
 
-                // 1️⃣ su 먼저 뒤돌기
-                this.time.delayedCall(10, () => {
-                su.setFrame(1);
-                });
+                // 1️⃣ su가 player를 바라봄
+                this.time.delayedCall(10, () => su.setFrame(1));
 
-                // 2️⃣ player가 천천히 걸어감
+                // 2️⃣ player가 천천히 su 쪽으로 이동
                 player.anims.play("player_up", true);
                 this.tweens.add({
                   targets: player,
                   x: playerPoint.x,
                   y: playerPoint.y,
-                  duration: 2000, // 천천히 이동
+                  duration: 2000,
                   ease: "Linear",
                   onComplete: () => {
-                    // 3️⃣ 도착 후 player도 뒤돌기
+                    // 3️⃣ 도착 후 멈추고 서로 마주봄
                     player.anims.stop();
                     player.setFrame(1);
                     player.body.moves = false;
 
-                    // 4️⃣ 약간의 여유 후 다시 조작 가능
-                    this.time.delayedCall(100, () => {
+                    // 4️⃣ 이동 완전히 멈춘 후 이벤트 해제
+                    this.time.delayedCall(300, () => {
                       eventLock = false;
                       player.body.moves = true;
+                      moveTarget = null; // ✅ 연출 후에도 이동 초기화 보장
                     });
                   },
                 });
@@ -167,60 +179,62 @@ export default function LastCanvas() {
             });
           }
 
-          // ✅ 업데이트 루프
+          // ✅ 메인 업데이트 루프
           this.update = () => {
             if (destroyed) return;
             player.setVelocity(0);
 
             if (!eventLock) {
-              const moveByKey = () => {
-                if (cursors.left.isDown) {
-                  player.setVelocityX(-moveSpeed);
-                  player.anims.play("player_left", true);
-                  return true;
-                } else if (cursors.right.isDown) {
-                  player.setVelocityX(moveSpeed);
-                  player.anims.play("player_right", true);
-                  return true;
-                } else if (cursors.up.isDown) {
-                  player.setVelocityY(-moveSpeed);
-                  player.anims.play("player_up", true);
-                  return true;
-                } else if (cursors.down.isDown) {
-                  player.setVelocityY(moveSpeed);
-                  player.anims.play("player_down", true);
-                  return true;
-                }
-                return false;
-              };
+              let moving = false;
 
-              if (!moveByKey()) {
-                if (moveTarget) {
-                  const dx = moveTarget.x - player.x;
-                  const dy = moveTarget.y - player.y;
-                  const dist = Math.sqrt(dx * dx + dy * dy);
-                  if (dist < 5) {
-                    moveTarget = null;
-                    player.anims.stop();
-                  } else {
-                    const ang = Math.atan2(dy, dx);
-                    player.setVelocity(Math.cos(ang) * moveSpeed, Math.sin(ang) * moveSpeed);
-                    player.anims.play(
-                      Math.abs(dx) > Math.abs(dy)
-                        ? dx > 0
-                          ? "player_right"
-                          : "player_left"
-                        : dy > 0
-                        ? "player_down"
-                        : "player_up",
-                      true
-                    );
-                  }
-                } else player.anims.stop();
+              // 키보드 이동
+              if (cursors.left.isDown) {
+                player.setVelocityX(-moveSpeed);
+                player.anims.play("player_left", true);
+                moving = true;
+              } else if (cursors.right.isDown) {
+                player.setVelocityX(moveSpeed);
+                player.anims.play("player_right", true);
+                moving = true;
+              } else if (cursors.up.isDown) {
+                player.setVelocityY(-moveSpeed);
+                player.anims.play("player_up", true);
+                moving = true;
+              } else if (cursors.down.isDown) {
+                player.setVelocityY(moveSpeed);
+                player.anims.play("player_down", true);
+                moving = true;
+              }
+
+              // 클릭 이동
+              if (!moving && moveTarget) {
+                const dx = moveTarget.x - player.x;
+                const dy = moveTarget.y - player.y;
+                const dist2 = dx * dx + dy * dy;
+
+                if (dist2 < 25) {
+                  moveTarget = null;
+                  player.anims.stop();
+                } else {
+                  const ang = Math.atan2(dy, dx);
+                  player.setVelocity(Math.cos(ang) * moveSpeed, Math.sin(ang) * moveSpeed);
+                  player.anims.play(
+                    Math.abs(dx) > Math.abs(dy)
+                      ? dx > 0
+                        ? "player_right"
+                        : "player_left"
+                      : dy > 0
+                      ? "player_down"
+                      : "player_up",
+                    true
+                  );
+                }
+              } else if (!moving) {
+                player.anims.stop();
               }
             }
 
-            // 🚪 복귀 트리거
+            // ✅ 복귀 트리거
             if (prevDoor) {
               const prevX = prevDoor.x + (prevDoor.width || 0) / 2;
               const prevY = prevDoor.y + (prevDoor.height || 32) / 2;
@@ -243,6 +257,7 @@ export default function LastCanvas() {
     };
 
     game = new Phaser.Game(config);
+
     return () => {
       destroyed = true;
       if (game) game.destroy(true);

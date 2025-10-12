@@ -1,72 +1,68 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
-export default function DialogueBox({ text, visible = true }) {
-  const [displayedText, setDisplayedText] = useState("");
-  const [boxHeight, setBoxHeight] = useState("30vh"); // ✅ 기본값
+export default function DialogueBox({
+  text = "",
+  visible = true,
+  isMobile = false,
+}) {
+  const [dialogHistory, setDialogHistory] = useState([]); // 전체 대화 로그
+  const scrollRef = useRef(null);
 
-  // ✅ 타이핑 효과
+  // ✅ 새 텍스트 들어올 때 히스토리에 추가
   useEffect(() => {
-    if (!text) {
-      setDisplayedText("");
-      return;
-    }
-
-    let i = 0;
-    setDisplayedText("");
-    const interval = setInterval(() => {
-      setDisplayedText((prev) => prev + text[i]);
-      i++;
-      if (i >= text.length) clearInterval(interval);
-    }, 25);
-
-    return () => clearInterval(interval);
+    if (!text) return;
+    setDialogHistory((prev) => {
+      // ✅ 직전 대사와 동일하면 추가하지 않음
+      if (prev[prev.length - 1] === text) return prev;
+      return [...prev, text];
+    });
   }, [text]);
 
-  // ✅ 화면 크기에 따라 높이 조정
+  // ✅ 새 텍스트 추가 시 자동 스크롤 맨 아래로 이동
   useEffect(() => {
-    const handleResize = () => {
-      const vh = window.innerHeight;
-      const vw = window.innerWidth;
-
-      // 모바일: 세로로 긴 화면
-      if (vw < 600) {
-        if (vh > 800) setBoxHeight("38vh");
-        else setBoxHeight("35vh");
-      } else {
-        setBoxHeight("28vh"); // PC나 태블릿
-      }
-    };
-
-    handleResize(); // 초기 실행
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+    if (scrollRef.current) {
+      requestAnimationFrame(() => {
+        scrollRef.current.scrollTo({
+          top: scrollRef.current.scrollHeight,
+          behavior: "smooth",
+        });
+      });
+    }
+  }, [dialogHistory]);
 
   if (!visible) return null;
 
   return (
     <div
+      ref={scrollRef}
       style={{
-        width: "100%",
-        height: boxHeight, // ✅ 반응형 높이 적용
-        minHeight: "120px",
-        background: "rgba(0, 0, 0, 0.85)",
-        color: "#fff",
-        fontSize: "1rem",
+        width: isMobile ? "100vw" : "100%",
+        maxWidth: isMobile ? "100vw" : "600px",
+        height: "22vh",
+        background: "#fff",
+        borderRadius: isMobile ? "0" : "12px",
+        boxShadow: "0 -2px 10px rgba(0,0,0,0.1)",
         padding: "16px 20px",
-        borderRadius: "0 0 12px 12px",
-        boxShadow: "0 -2px 10px rgba(0,0,0,0.3)",
-        wordBreak: "break-word",
-        lineHeight: "1.6",
-        overflowY: "auto", // ✅ 내부 스크롤만 허용
+        lineHeight: "1.7",
+        color: "#222",
+        marginTop: "4px",
+        overflowY: "auto",       // ✅ 세로 스크롤
+        overflowX: "hidden",     // ✅ 가로 스크롤 제거
+        wordBreak: "break-word", // ✅ 긴 단어 줄바꿈
+        whiteSpace: "pre-wrap",  // ✅ 줄바꿈 문자 유지
+        boxSizing: "border-box",
         WebkitOverflowScrolling: "touch",
-        touchAction: "pan-y",
-        overscrollBehavior: "contain",
-        scrollbarWidth: "thin",
-        scrollbarColor: "#999 transparent",
       }}
     >
-      {displayedText}
+      {dialogHistory.map((line, idx) => (
+        <div
+          key={idx}
+          dangerouslySetInnerHTML={{
+            __html: line.replace(/\n/g, "<br/>"),
+          }}
+          style={{ marginBottom: "10px" }}
+        />
+      ))}
     </div>
   );
 }
