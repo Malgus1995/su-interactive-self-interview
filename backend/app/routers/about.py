@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 
-router = APIRouter()
+router = APIRouter(prefix="/about",tags=["about"])
 
-@router.get("/about")
+@router.get("/intropage")
 def get_about():
     return {
          "description":
