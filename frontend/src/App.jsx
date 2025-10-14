@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import IntroCanvas from "./components/IntroCanvas";
 import SecondCanvas from "./components/SecondCanvas";
 import ProfilePanel from "./components/ProfilePanel";
+import ThirdCanvas from "./components/ThirdCanvas";
 
 export default function App() {
   const [dialogHistory, setDialogHistory] = useState([]);
@@ -86,10 +87,16 @@ export default function App() {
             setDialogText={handleDialogUpdate}
             onEnterSecondRoom={handleEnterSecondRoom}
           />
+        ) : currentRoom === "second" ? (
+          <SecondCanvas
+            setDialogText={handleDialogUpdate}
+            onBackToFirstRoom={handleBackToFirstRoom}
+          />
         ) : (
-          <SecondCanvas 
-          setDialogText={handleDialogUpdate}
-          onBackToFirstRoom={handleBackToFirstRoom} />
+          <ThirdCanvas
+            setDialogText={handleDialogUpdate}
+            onBackToFirstRoom={handleBackToFirstRoom}
+          />
         )}
       </div>
 

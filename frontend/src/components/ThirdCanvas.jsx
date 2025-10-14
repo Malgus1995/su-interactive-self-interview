@@ -13,11 +13,23 @@ import davidPng from "/src/assets/david.png";
 import kyminPng from "/src/assets/kymin.png";
 import richseaPng from "/src/assets/richsea.png";
 import europiaPng from "/src/assets/europia.png";
-
-export default function ThirdCanvas() {
+import axios from "axios";
+export default function ThirdCanvas({ setDialogText }) {
   const gameRef = useRef(null);
+  const BASE_URL = "http://127.0.0.1:8000/winter"; 
   const [goBackSecondRoom, setGoBackSecondRoom] = useState(false);
   const [enteredLastRoom, setEnteredLastRoom] = useState(false);
+
+   useEffect(() => {
+    axios
+      .get(`${BASE_URL}/init_point`)
+      .then((res) => {
+        setDialogText(res.data.description);
+      })
+      .catch((err) => {
+        console.error("⚠️ init_point API 호출 실패:", err);
+      });
+  }, [setDialogText]);
 
   useEffect(() => {
     if (!gameRef.current || goBackSecondRoom) return;
