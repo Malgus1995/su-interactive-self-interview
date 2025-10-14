@@ -204,7 +204,9 @@ export default function LastCanvas({ setDialogText }) {
                     this.time.delayedCall(1000, async () => {
                       try {
                         const res = await axios.get(`${BASE_URL}/approach_point`);
-                        setDialogText(res.data.description);
+                        setDialogText({text: res.data.description,
+                          trigger: "idealType",
+                      });
                       } catch (err) {
                         console.error("approach_point 호출 실패:", err);
                       }
