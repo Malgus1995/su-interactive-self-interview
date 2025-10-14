@@ -77,6 +77,7 @@ export default function SecondCanvas({ setDialogText }) {
         },
 
         create() {
+          
           // ✅ 맵 불러오기
           const map = this.make.tilemap({ key: "second_room" });
           const sets = map.tilesets.map((ts) =>
@@ -112,6 +113,13 @@ export default function SecondCanvas({ setDialogText }) {
             (o) => o.name === "prev_room_point"
           );
 
+          const childhood = map.findObject("interactions", (o) => o.name === "어렸을때사람들");
+          const study = map.findObject("interactions", (o) => o.name === "공부와운동");
+          const machine = map.findObject("interactions", (o) => o.name === "기계를좋아함");
+          let childhoodVisited = false;
+          let studyVisited = false;
+          let machineVisited = false;
+          
           // ✅ 플레이어 생성
           const player = this.physics.add.sprite(spawn.x, spawn.y - 16, "player");
           player.setOrigin(0.5, 1);
@@ -150,7 +158,7 @@ export default function SecondCanvas({ setDialogText }) {
           });
 
           // ✅ 업데이트 루프
-          this.update = () => {
+          this.update = async () => {
             if (destroyed) return;
             player.setVelocity(0);
             let moving = false;
@@ -233,8 +241,56 @@ export default function SecondCanvas({ setDialogText }) {
                 }, 100);
               }
             }
-          };
-        },
+
+// ✅ 오브젝트 정의 아래에 추가
+const visited = {
+  people: false,
+  study: false,
+  machine: false,
+};
+
+const checkPoint = async (obj, key, endpoint) => {
+ if (!obj || visited[key]) return;
+
+  // 오브젝트의 실제 사각형 영역
+  const left = obj.x;
+  const right = obj.x + obj.width;
+  const top = obj.y;
+  const bottom = obj.y + obj.height;
+
+  // 플레이어 중심이 사각형 안에 있으면 true
+  const inside =
+    player.x >= left &&
+    player.x <= right &&
+    player.y >= top &&
+    player.y <= bottom;
+
+  if (inside) {
+    visited[key] = true;
+    setTimeout(() => (visited[key] = false), 2000);
+
+    try {
+      const res = await axios.get(`${BASE_URL}/${endpoint}`);
+      if (typeof setDialogText === "function") {
+        setDialogText(res.data.description);
+      }
+    } catch (err) {
+      console.error(`⚠️ ${endpoint} API 실패:`, err);
+    }
+  }
+};
+
+
+
+await checkPoint(childhood, "people", "people_point");
+await checkPoint(study, "study", "study_and_exercise_point");
+await checkPoint(machine, "machine", "machine_point");
+    
+  };
+},
+
+        
+
 
         update() {
           this.update && this.update();
@@ -259,7 +315,7 @@ export default function SecondCanvas({ setDialogText }) {
     };
   }, [enteredThirdRoom]);
 
-if (enteredThirdRoom) return <ThirdCanvas />;
+if (enteredThirdRoom) return <ThirdCanvas setDialogText={setDialogText} />;
 if (goBackToFirstRoom) return <IntroCanvas setDialogText={setDialogText} />;
 
 

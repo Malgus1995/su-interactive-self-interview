@@ -8,15 +8,15 @@
          "name":"interactions",
          "objects":[
                 {
-                 "height":20.679,
+                 "height":47.6939056852657,
                  "id":8,
                  "name":"\uae30\uacc4\ub97c\uc88b\uc544\ud568",
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":298.123,
-                 "x":330.865,
-                 "y":874.551
+                 "width":317.033433979686,
+                 "x":324.111273578684,
+                 "y":769.192867827463
                 }, 
                 {
                  "height":42.2197,
@@ -25,8 +25,8 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":302.431,
-                 "x":330.865,
+                 "width":315.938452842633,
+                 "x":317.357547157367,
                  "y":523.869
                 }, 
                 {
@@ -53,36 +53,14 @@
                  "y":983.001479362387
                 }, 
                 {
-                 "height":24.9871681602087,
-                 "id":16,
-                 "name":"girl_interaction",
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":25.8487946484917,
-                 "x":323.109933106147,
-                 "y":800.451007614961
-                }, 
-                {
-                 "height":24.9871681602086,
-                 "id":17,
-                 "name":"boy_interaction",
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":26.7104211367747,
-                 "x":609.169927216122,
-                 "y":799.589381126678
-                }, 
-                {
                  "height":44,
                  "id":23,
                  "name":"\uacf5\ubd80\uc640\uc6b4\ub3d9",
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":296,
-                 "x":335,
+                 "width":318.962669832476,
+                 "x":321.492547157367,
                  "y":278
                 }, 
                 {
