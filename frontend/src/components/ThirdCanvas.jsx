@@ -138,6 +138,41 @@ export default function ThirdCanvas({ setDialogText }) {
             { x: map.widthInPixels / 2, y: map.heightInPixels / 2 };
           const prevDoor = map.findObject("interactions", (o) => o.name === "prev_point");
           const nextDoor = map.findObject("interactions", (o) => o.name === "next_point");
+          const programming = map.findObject("interactions", (o) => o.name === "programming");
+          const notebook = map.findObject("interactions", (o) => o.name === "notebook");
+          const communication = map.findObject("interactions", (o) => o.name === "comunication");
+          const masterDegree = map.findObject("interactions", (o) => o.name === "master_degree");
+          const path = map.findObject("interactions", (o) => o.name === "path");
+
+          const visited = {
+            programming: false,
+            notebook: false,
+            communication: false,
+            masterDegree: false,
+            path: false,
+          };
+
+          const checkArea = async (obj, key, endpoint) => {
+            if (!obj || visited[key]) return;
+            const inside =
+              player.x >= obj.x &&
+              player.x <= obj.x + obj.width &&
+              player.y >= obj.y &&
+              player.y <= obj.y + obj.height;
+
+            if (inside) {
+              visited[key] = true;
+              setTimeout(() => (visited[key] = false), 2000);
+              try {
+                const res = await axios.get(`${BASE_URL}/${endpoint}`);
+                if (typeof setDialogText === "function") {
+                  setDialogText(res.data.description);
+                }
+              } catch (err) {
+                console.error(`⚠️ ${endpoint} API 실패:`, err);
+              }
+            }
+          };
 
           // ✅ 플레이어
           const player = this.physics.add.sprite(spawn.x, spawn.y - 16, "player");
@@ -248,7 +283,7 @@ export default function ThirdCanvas({ setDialogText }) {
           });
 
           // ✅ 업데이트 루프
-          this.update = () => {
+          this.update = async () => {
             if (destroyed) return;
             player.setVelocity(0);
 
@@ -325,6 +360,12 @@ export default function ThirdCanvas({ setDialogText }) {
                 }, 150);
               }
             }
+            await checkArea(programming, "programming", "language_point");
+            await checkArea(notebook, "notebook", "notebook_point");
+            await checkArea(communication, "communication", "communication_point");
+            await checkArea(masterDegree, "masterDegree", "master_degree_point");
+            await checkArea(path, "path", "path_point");
+            
           };
         },
 
@@ -351,8 +392,8 @@ export default function ThirdCanvas({ setDialogText }) {
     };
   }, [goBackSecondRoom]);
 
-  if (goBackSecondRoom) return <SecondCanvas />;
-  if (enteredLastRoom) return <LastCanvas />;
+  if (goBackSecondRoom) return <SecondCanvas setDialogText={setDialogText} />;
+  if (enteredLastRoom) return <LastCanvas setDialogText={setDialogText} />;
 
   return (
     <div

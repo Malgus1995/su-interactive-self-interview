@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 import IntroCanvas from "./components/IntroCanvas";
 import SecondCanvas from "./components/SecondCanvas";
-import ProfilePanel from "./components/ProfilePanel";
 import ThirdCanvas from "./components/ThirdCanvas";
+import LastCanvas from "./components/LastCanvas";
+import ProfilePanel from "./components/ProfilePanel";
 
 export default function App() {
   const [dialogHistory, setDialogHistory] = useState([]);
-  const [currentRoom, setCurrentRoom] = useState("intro"); // ✅ 현재 방 상태
+  const [currentRoom, setCurrentRoom] = useState("intro"); // intro → second → third → last
 
-  // ✅ 안전한 setter
+  // ✅ 안전한 setter (중복 방지)
   const handleDialogUpdate = useCallback((newText) => {
     setDialogHistory((prev) => {
       if (!newText) return prev;
@@ -17,13 +18,21 @@ export default function App() {
     });
   }, []);
 
-  // ✅ 방 이동 시 초기화
+  // ✅ 방 이동 콜백들
   const handleEnterSecondRoom = useCallback(() => {
     setCurrentRoom("second");
   }, []);
 
+  const handleEnterThirdRoom = useCallback(() => {
+    setCurrentRoom("third");
+  }, []);
+
+  const handleEnterLastRoom = useCallback(() => {
+    setCurrentRoom("last");
+  }, []);
+
   const handleBackToFirstRoom = useCallback(() => {
-    setDialogHistory([]); // ✅ 대화 초기화
+    setDialogHistory([]);
     setCurrentRoom("intro");
   }, []);
 
@@ -37,6 +46,7 @@ export default function App() {
     }
   }, [dialogHistory]);
 
+  // ✅ 반응형
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 600);
@@ -70,7 +80,7 @@ export default function App() {
         <ProfilePanel />
       </div>
 
-      {/* ✅ 현재 방에 따라 Canvas 전환 */}
+      {/* ✅ 현재 방 전환 */}
       <div
         style={{
           flexGrow: 1,
@@ -82,25 +92,45 @@ export default function App() {
           background: "#fff",
         }}
       >
-        {currentRoom === "intro" ? (
-          <IntroCanvas
-            setDialogText={handleDialogUpdate}
-            onEnterSecondRoom={handleEnterSecondRoom}
-          />
-        ) : currentRoom === "second" ? (
-          <SecondCanvas
-            setDialogText={handleDialogUpdate}
-            onBackToFirstRoom={handleBackToFirstRoom}
-          />
-        ) : (
-          <ThirdCanvas
-            setDialogText={handleDialogUpdate}
-            onBackToFirstRoom={handleBackToFirstRoom}
-          />
-        )}
+        {(() => {
+          switch (currentRoom) {
+            case "intro":
+              return (
+                <IntroCanvas
+                  setDialogText={handleDialogUpdate}
+                  onEnterSecondRoom={handleEnterSecondRoom}
+                />
+              );
+            case "second":
+              return (
+                <SecondCanvas
+                  setDialogText={handleDialogUpdate}
+                  onEnterThirdRoom={handleEnterThirdRoom}
+                  onBackToFirstRoom={handleBackToFirstRoom}
+                />
+              );
+            case "third":
+              return (
+                <ThirdCanvas
+                  setDialogText={handleDialogUpdate}
+                  onEnterLastRoom={handleEnterLastRoom}
+                  onBackToSecondRoom={handleEnterSecondRoom}
+                />
+              );
+            case "last":
+              return (
+                <LastCanvas
+                  setDialogText={handleDialogUpdate}
+                  onBackToFirstRoom={handleBackToFirstRoom}
+                />
+              );
+            default:
+              return null;
+          }
+        })()}
       </div>
 
-      {/* ✅ 대화창 (누적형) */}
+      {/* ✅ 대화창 */}
       <div
         id="dialog-container"
         style={{

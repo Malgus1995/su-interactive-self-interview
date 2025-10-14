@@ -6,7 +6,6 @@ import ThirdCanvas from "./ThirdCanvas";
 import IntroCanvas from "./IntroCanvas";
 import axios from "axios"; // ✅ axios 추가
 
-
 export default function SecondCanvas({ setDialogText }) {
   const gameRef = useRef(null);
   const BASE_URL = "http://127.0.0.1:8000/autumn"; 
