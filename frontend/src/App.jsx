@@ -9,37 +9,60 @@ import IdealType from "./components/IdealType"; // ✅ 추가
 export default function App() {
   const [dialogHistory, setDialogHistory] = useState([]);
   const [currentRoom, setCurrentRoom] = useState("intro");
-  const [showIdealModal, setShowIdealModal] = useState(false); // ✅ 모달 상태
+  // ✅ IdealType 모달 상태
+const [showIdealModal, setShowIdealModal] = useState(false);
+
+// ✅ 버튼 클릭 리스너 재연결
+useEffect(() => {
+  const attachIdealButtonEvents = () => {
+    document.querySelectorAll(".ideal-btn").forEach((btn) => {
+      btn.onclick = () => setShowIdealModal(true);
+    });
+  };
+
+  // 버튼이 새로 생기거나, 모달 닫혔을 때 재연결
+  attachIdealButtonEvents();
+
+  // MutationObserver로 버튼 DOM 변화 감지 → 항상 이벤트 유효화
+  const observer = new MutationObserver(() => attachIdealButtonEvents());
+  const container = document.getElementById("dialog-container");
+  if (container) observer.observe(container, { childList: true, subtree: true });
+
+  return () => observer.disconnect();
+}, [showIdealModal]);
 
   // ✅ 안전한 setter
-  const handleDialogUpdate = useCallback((newText) => {
-    if (!newText) return;
+const handleDialogUpdate = useCallback((newText) => {
+  if (!newText) return;
 
-    if (typeof newText === "string") {
-      setDialogHistory((prev) => {
-        if (prev[prev.length - 1] === newText) return prev;
-        return [...prev, newText];
-      });
-      return;
+  // 단순 문자열이면 그대로 출력
+  if (typeof newText === "string") {
+    setDialogHistory((prev) => {
+      if (prev[prev.length - 1] === newText) return prev;
+      return [...prev, newText];
+    });
+    return;
+  }
+
+  // ✅ 트리거가 있는 경우
+  if (typeof newText === "object" && newText.text) {
+    if (newText.trigger === "idealType") {
+      const htmlWithButton = `
+        ${newText.text} <button class="ideal-btn">이상형 보기</button>`;
+      setDialogHistory((prev) => [...prev, htmlWithButton]);
+
+      // ✅ 버튼 이벤트는 항상 최신 대화창에 연결
+      setTimeout(() => {
+        document.querySelectorAll(".ideal-btn").forEach((btn) => {
+          btn.onclick = () => setShowIdealModal(true);
+        });
+      }, 200);
+    } else {
+      setDialogHistory((prev) => [...prev, newText.text]);
     }
+  }
+}, []);
 
-    if (typeof newText === "object" && newText.text) {
-      if (newText.trigger === "idealType") {
-        const htmlWithButton = `
-          ${newText.text} <button id="ideal-btn">이상형 보기</button>
-        `;
-        setDialogHistory((prev) => [...prev, htmlWithButton]);
-
-        // 버튼 이벤트 연결
-        setTimeout(() => {
-          const btn = document.getElementById("ideal-btn");
-          if (btn) btn.onclick = () => setShowIdealModal(true);
-        }, 100);
-      } else {
-        setDialogHistory((prev) => [...prev, newText.text]);
-      }
-    }
-  }, []);
 
   // ✅ 방 이동 콜백들
   const handleEnterSecondRoom = useCallback(() => setCurrentRoom("second"), []);
