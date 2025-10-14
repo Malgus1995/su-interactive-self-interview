@@ -4,11 +4,25 @@ import secondRoomJson from "/src/assets/second_room.json";
 import playerPng from "/src/assets/tiles/player.png";
 import ThirdCanvas from "./ThirdCanvas";
 import IntroCanvas from "./IntroCanvas";
+import axios from "axios"; // ✅ axios 추가
 
-export default function SecondCanvas() {
+export default function SecondCanvas({ setDialogText }) {
   const gameRef = useRef(null);
+  const BASE_URL = "http://127.0.0.1:8000/autumn"; // ✅ 가을 API base URL
   const [enteredThirdRoom, setEnteredThirdRoom] = useState(false);
   const [goBackToFirstRoom, setGoBackToFirstRoom] = useState(false);
+
+  // ✅ 방 진입 시 텍스트 초기화 (autumn/init_point 호출)
+  useEffect(() => {
+    axios
+      .get(`${BASE_URL}/init_point`)
+      .then((res) => {
+        setDialogText(res.data.description);
+      })
+      .catch((err) => {
+        console.error("⚠️ init_point API 호출 실패:", err);
+      });
+  }, [setDialogText]);
 
   useEffect(() => {
     if (!gameRef.current || enteredThirdRoom) return;
@@ -18,7 +32,10 @@ export default function SecondCanvas() {
     // ✅ 반응형 크기 계산
     const getBaseSize = () => {
       const container = gameRef.current;
-      return { baseWidth: container.clientWidth, baseHeight: container.clientHeight };
+      return {
+        baseWidth: container.clientWidth,
+        baseHeight: container.clientHeight,
+      };
     };
     const { baseWidth, baseHeight } = getBaseSize();
 
@@ -40,12 +57,10 @@ export default function SecondCanvas() {
         preload() {
           // ✅ 캐시에 존재하는 리소스는 스킵
           if (!this.cache.tilemap.exists("second_room")) {
-            console.log("📦 Loading second_room tilemap...");
             this.load.tilemapTiledJSON("second_room", secondRoomJson);
           }
 
           if (!this.textures.exists("player")) {
-            console.log("📦 Loading player spritesheet...");
             this.load.spritesheet("player", playerPng, {
               frameWidth: 32,
               frameHeight: 32,
@@ -62,7 +77,7 @@ export default function SecondCanvas() {
         },
 
         create() {
-          // ✅ 맵 불러오기 (캐시 사용)
+          // ✅ 맵 불러오기
           const map = this.make.tilemap({ key: "second_room" });
           const sets = map.tilesets.map((ts) =>
             map.addTilesetImage(ts.name, `tileset_${ts.name}`)
@@ -97,10 +112,9 @@ export default function SecondCanvas() {
             (o) => o.name === "prev_room_point"
           );
 
-          // ✅ 플레이어 생성 (캐시된 스프라이트시트 사용)
+          // ✅ 플레이어 생성
           const player = this.physics.add.sprite(spawn.x, spawn.y - 16, "player");
           player.setOrigin(0.5, 1);
-
           collidableLayers.forEach((l) => this.physics.add.collider(player, l));
 
           // ✅ 카메라
@@ -109,19 +123,23 @@ export default function SecondCanvas() {
           cam.startFollow(player, true, 0.15, 0.15);
           cam.setZoom(1.2);
 
-          // ✅ 애니메이션 등록 (중복 방지)
+          // ✅ 애니메이션
           const dirs = { down: [0, 2], right: [6, 8], left: [12, 14], up: [18, 20] };
           Object.entries(dirs).forEach(([k, [s, e]]) => {
-            if (!this.anims.exists(k))
+            if (!this.anims.exists(k)) {
               this.anims.create({
                 key: k,
-                frames: this.anims.generateFrameNumbers("player", { start: s, end: e }),
+                frames: this.anims.generateFrameNumbers("player", {
+                  start: s,
+                  end: e,
+                }),
                 frameRate: 8,
                 repeat: -1,
               });
+            }
           });
 
-          // ✅ 입력 제어
+          // ✅ 이동 제어
           const cursors = this.input.keyboard.createCursorKeys();
           const moveSpeed = 150;
           let moveTarget = null;
@@ -131,11 +149,10 @@ export default function SecondCanvas() {
             moveTarget = { x: world.x, y: world.y };
           });
 
-          // ✅ 업데이트 루프 (최적화)
+          // ✅ 업데이트 루프
           this.update = () => {
             if (destroyed) return;
             player.setVelocity(0);
-
             let moving = false;
 
             if (cursors.left.isDown) {
@@ -163,7 +180,10 @@ export default function SecondCanvas() {
               if (dist2 < 25) moveTarget = null;
               else {
                 const ang = Math.atan2(dy, dx);
-                player.setVelocity(Math.cos(ang) * moveSpeed, Math.sin(ang) * moveSpeed);
+                player.setVelocity(
+                  Math.cos(ang) * moveSpeed,
+                  Math.sin(ang) * moveSpeed
+                );
                 player.anims.play(
                   Math.abs(dx) > Math.abs(dy)
                     ? dx > 0
@@ -179,7 +199,7 @@ export default function SecondCanvas() {
 
             if (!moving && !moveTarget) player.anims.stop();
 
-            // ✅ 이전 방 이동 (prevDoor)
+            // ✅ 이전 방 이동
             if (prevDoor) {
               const prevX = prevDoor.x + (prevDoor.width || 32) / 2;
               const prevY = prevDoor.y + (prevDoor.height || 32);
@@ -197,7 +217,7 @@ export default function SecondCanvas() {
               }
             }
 
-            // ✅ 다음 방 이동 (nextDoor)
+            // ✅ 다음 방 이동
             if (nextDoor) {
               const doorDist = Phaser.Math.Distance.Between(
                 player.x,
@@ -224,7 +244,7 @@ export default function SecondCanvas() {
 
     game = new Phaser.Game(config);
 
-    // ✅ Resize 최적화
+    // ✅ Resize 대응
     const handleResize = () => {
       if (!game || destroyed) return;
       const { baseWidth, baseHeight } = getBaseSize();
@@ -239,8 +259,9 @@ export default function SecondCanvas() {
     };
   }, [enteredThirdRoom]);
 
-  if (enteredThirdRoom) return <ThirdCanvas />;
-  if (goBackToFirstRoom) return <IntroCanvas />;
+if (enteredThirdRoom) return <ThirdCanvas />;
+if (goBackToFirstRoom) return <IntroCanvas setDialogText={setDialogText} />;
+
 
   return (
     <div

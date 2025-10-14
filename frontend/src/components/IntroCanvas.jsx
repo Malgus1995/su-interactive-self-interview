@@ -243,7 +243,7 @@ export default function IntroCanvas({ setDialogText,topOffset = 140 }) {
     };
   }, [enteredSecondRoom,setDialogText]);
 
-  if (enteredSecondRoom) return <SecondCanvas />;
+  if (enteredSecondRoom) return <SecondCanvas setDialogText={setDialogText} />;
 
   return (
     <div

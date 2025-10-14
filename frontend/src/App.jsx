@@ -1,28 +1,32 @@
 import { useState, useEffect, useCallback } from "react";
 import IntroCanvas from "./components/IntroCanvas";
+import SecondCanvas from "./components/SecondCanvas";
 import ProfilePanel from "./components/ProfilePanel";
 
 export default function App() {
-  const [dialogHistory, setDialogHistory] = useState([
-    ""
-  ]);
+  const [dialogHistory, setDialogHistory] = useState([]);
+  const [currentRoom, setCurrentRoom] = useState("intro"); // ✅ 현재 방 상태
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 600);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  // ✅ useCallback으로 고정 → IntroCanvas에 전달돼도 참조가 변하지 않음
+  // ✅ 안전한 setter
   const handleDialogUpdate = useCallback((newText) => {
     setDialogHistory((prev) => {
+      if (!newText) return prev;
       if (prev[prev.length - 1] === newText) return prev;
       return [...prev, newText];
     });
   }, []);
 
-  // ✅ 스크롤 자동 아래로 이동
+  // ✅ 방 이동 시 초기화
+  const handleEnterSecondRoom = useCallback(() => {
+    setCurrentRoom("second");
+  }, []);
+
+  const handleBackToFirstRoom = useCallback(() => {
+    setDialogHistory([]); // ✅ 대화 초기화
+    setCurrentRoom("intro");
+  }, []);
+
+  // ✅ 자동 스크롤
   useEffect(() => {
     const box = document.getElementById("dialog-container");
     if (box) {
@@ -31,6 +35,13 @@ export default function App() {
       });
     }
   }, [dialogHistory]);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 600);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <div
@@ -58,7 +69,7 @@ export default function App() {
         <ProfilePanel />
       </div>
 
-      {/* Phaser 캔버스 — Phaser는 이 div 안에서만 존재 */}
+      {/* ✅ 현재 방에 따라 Canvas 전환 */}
       <div
         style={{
           flexGrow: 1,
@@ -68,14 +79,21 @@ export default function App() {
           justifyContent: "center",
           alignItems: "center",
           background: "#fff",
-          overflow: "hidden",
         }}
       >
-        {/* ✅ useCallback 덕분에 이 prop은 고정됨 */}
-        <IntroCanvas setDialogText={handleDialogUpdate} />
+        {currentRoom === "intro" ? (
+          <IntroCanvas
+            setDialogText={handleDialogUpdate}
+            onEnterSecondRoom={handleEnterSecondRoom}
+          />
+        ) : (
+          <SecondCanvas 
+          setDialogText={handleDialogUpdate}
+          onBackToFirstRoom={handleBackToFirstRoom} />
+        )}
       </div>
 
-      {/* 하단 대화창 */}
+      {/* ✅ 대화창 (누적형) */}
       <div
         id="dialog-container"
         style={{

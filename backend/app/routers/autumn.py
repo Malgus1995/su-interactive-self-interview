@@ -15,13 +15,14 @@ def machine_message():
          "description":
             "어렸을적부터 기계에 관심이 많았습니다. 5살때 피자집에서 어머니가 잠깐 딴짓하는 사이에 전등 만져서 혼자 뽑아 버릴 정도로 호기심이 많았습니다.",
     }
+@router.get("/people_point")
 
 def people_message():
     return {
          "description":
             "화목한 가정에서 자랐습니다. 부모님은 늘 저를 믿어주셨고, 선하고 바른 마음씨를 가지도록 사랑으로 키워주셨습니다. 이는 제가 인생을 살아가는데, 중요한 영향력을 주었습니다.",
     }
-    
+@router.get("/study_and_exercise_point") 
 def study_and_exercise_message():
     return {
          "description":
