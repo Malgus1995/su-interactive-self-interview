@@ -5,10 +5,23 @@ import playerPng from "/src/assets/tiles/player.png";
 import suPng from "/src/assets/su.png";
 import IntroCanvas from "./IntroCanvas";
 import heartImg from "/src/assets/tiles/heart_32x32.png";
-
-export default function LastCanvas() {
+import axios from "axios";
+export default function LastCanvas({ setDialogText }) {
   const gameRef = useRef(null);
   const [goIntroCanvas, setGoIntroCanvas] = useState(false);
+  const BASE_URL = "http://127.0.0.1:8000/spring"; // ✅ 겨울 API base URL
+  
+
+    useEffect(() => {
+    axios
+      .get(`${BASE_URL}/init_point`)
+      .then((res) => {
+        setDialogText(res.data.description);
+      })
+      .catch((err) => {
+        console.error("⚠️ init_point API 호출 실패:", err);
+      });
+  }, [setDialogText]);
 
   useEffect(() => {
     if (!gameRef.current || goIntroCanvas) return;
@@ -125,6 +138,27 @@ export default function LastCanvas() {
           let eventLock = false;
           let eventTriggered = false;
 
+          const visited = { init: false, approach: false };
+
+          const checkArea = async (obj, key, endpoint) => {
+            if (!obj || visited[key]) return;
+            const inside =
+              player.x >= obj.x &&
+              player.x <= obj.x + (obj.width || 0) &&
+              player.y >= obj.y &&
+              player.y <= obj.y + (obj.height || 0);
+            if (inside) {
+              visited[key] = true;
+              setTimeout(() => (visited[key] = false), 2500);
+              try {
+                const res = await axios.get(`${BASE_URL}/${endpoint}`);
+                setDialogText(res.data.description);
+              } catch (err) {
+                console.error(`${endpoint} 호출 실패:`, err);
+              }
+            }
+          };
+
           // ✅ 클릭 이동
           this.input.on("pointerdown", (p) => {
             if (eventLock) return;
@@ -167,11 +201,15 @@ export default function LastCanvas() {
                     player.setFrame(1);
                     player.body.moves = false;
 
-                    // 4️⃣ 이동 완전히 멈춘 후 이벤트 해제
-                    this.time.delayedCall(300, () => {
+                    this.time.delayedCall(1000, async () => {
+                      try {
+                        const res = await axios.get(`${BASE_URL}/approach_point`);
+                        setDialogText(res.data.description);
+                      } catch (err) {
+                        console.error("approach_point 호출 실패:", err);
+                      }
                       eventLock = false;
                       player.body.moves = true;
-                      moveTarget = null; // ✅ 연출 후에도 이동 초기화 보장
                     });
                   },
                 });
@@ -264,7 +302,7 @@ export default function LastCanvas() {
     };
   }, [goIntroCanvas]);
 
-  if (goIntroCanvas) return <IntroCanvas />;
+  if (goIntroCanvas) return <IntroCanvas setDialogText={setDialogText} />;
 
   return (
     <div
