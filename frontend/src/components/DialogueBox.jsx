@@ -34,35 +34,25 @@ export default function DialogueBox({
 
   return (
     <div
-      ref={scrollRef}
       style={{
-        width: isMobile ? "100vw" : "100%",
-        maxWidth: isMobile ? "100vw" : "600px",
-        height: "22vh",
-        background: "#fff",
-        borderRadius: isMobile ? "0" : "12px",
-        boxShadow: "0 -2px 10px rgba(0,0,0,0.1)",
-        padding: "16px 20px",
-        lineHeight: "1.7",
-        color: "#222",
-        marginTop: "4px",
-        overflowY: "auto",       // ✅ 세로 스크롤
-        overflowX: "hidden",     // ✅ 가로 스크롤 제거
-        wordBreak: "break-word", // ✅ 긴 단어 줄바꿈
-        whiteSpace: "pre-wrap",  // ✅ 줄바꿈 문자 유지
-        boxSizing: "border-box",
-        WebkitOverflowScrolling: "touch",
+        position: "absolute",
+        bottom: "0",
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "90%",
+        maxWidth: "700px",
+        background: "rgba(255,255,255,0.9)",
+        border: "2px solid #dcdcdc",
+        borderRadius: "12px",
+        padding: "12px 16px",
+        fontSize: "16px",
+        lineHeight: 1.5,
+        maxHeight: "180px",
+        overflowY: "auto",
+        boxShadow: "0 0 10px rgba(0,0,0,0.2)",
       }}
     >
-      {dialogHistory.map((line, idx) => (
-        <div
-          key={idx}
-          dangerouslySetInnerHTML={{
-            __html: line.replace(/\n/g, "<br/>"),
-          }}
-          style={{ marginBottom: "10px" }}
-        />
-      ))}
+      {text || "Loading..."}
     </div>
   );
 }

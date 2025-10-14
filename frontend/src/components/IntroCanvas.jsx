@@ -3,11 +3,18 @@ import Phaser from "phaser";
 import mapJson from "/src/assets/start_map_json.json";
 import playerPng from "/src/assets/tiles/player.png";
 import SecondCanvas from "./SecondCanvas";
+import axios from "axios";
 
-export default function IntroCanvas({ topOffset = 140 }) {
+export default function IntroCanvas({ setDialogText,topOffset = 140 }) {
+  const BASE_URL = "http://127.0.0.1:8000/summer";
   const gameRef = useRef(null);
   const [enteredSecondRoom, setEnteredSecondRoom] = useState(false);
-
+  
+  useEffect(() => {
+    axios.get(`${BASE_URL}/init`).then((res) => {
+      setDialogText(res.data.description);
+    });
+  }, [setDialogText]);
   useEffect(() => {
     if (!gameRef.current || enteredSecondRoom) return;
     let destroyed = false;
@@ -71,6 +78,7 @@ export default function IntroCanvas({ topOffset = 140 }) {
           // ✅ 오브젝트 불러오기
           const spawn = map.findObject("interactables", (o) => o.name === "init_point");
           const startDoor = map.findObject("interactables", (o) => o.name === "start_door");
+          const seaPoint = map.findObject("interactables", (o) => o.name === "tmi_point");
 
           // ✅ 플레이어 생성
           const player = this.physics.add.sprite(spawn.x, spawn.y - 16, "player");
@@ -141,9 +149,9 @@ export default function IntroCanvas({ topOffset = 140 }) {
             }
             treeLayer.setAlpha(isOverlap ? 0.5 : 1);
           };
-
+        let seaVisited = false;
           // ✅ 업데이트 루프
-          this.update = () => {
+          this.update = async () => {
             if (destroyed) return;
             player.setVelocity(0);
             fadeNearTrees();
@@ -199,6 +207,16 @@ export default function IntroCanvas({ topOffset = 140 }) {
                 this.game.destroy(true);
               }
             }
+
+              if (!seaVisited && seaPoint && Phaser.Math.Distance.Between(player.x, player.y, seaPoint.x, seaPoint.y) < 40) {
+                seaVisited = true; // 한 번만 실행되도록 플래그 설정
+              try {
+                const res = await axios.get(`${BASE_URL}/sea_point`);
+                setDialogText(res.data.description); // 🔹 부모(App)의 텍스트박스 업데이트
+              } catch (err) {
+                console.error("API 요청 실패:", err);
+              }
+            }
           };
         },
 
@@ -223,7 +241,7 @@ export default function IntroCanvas({ topOffset = 140 }) {
       window.removeEventListener("resize", handleResize);
       if (game) game.destroy(true);
     };
-  }, [enteredSecondRoom]);
+  }, [enteredSecondRoom,setDialogText]);
 
   if (enteredSecondRoom) return <SecondCanvas />;
 
@@ -237,7 +255,7 @@ export default function IntroCanvas({ topOffset = 140 }) {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-      }}
-    />
+      }}>
+    </div>
   );
 }

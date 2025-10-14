@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import IntroCanvas from "./components/IntroCanvas";
 import ProfilePanel from "./components/ProfilePanel";
-import DialogueBox from "./components/DialogueBox";
 
 export default function App() {
   const [dialogText, setDialogText] = useState(
