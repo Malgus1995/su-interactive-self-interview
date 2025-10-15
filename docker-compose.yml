@@ -1,26 +1,28 @@
+version: "3.9"
+
 services:
   backend:
+    image: sunguk1995/su-interactive-self-interview-backend:latest
+    container_name: su-backend
     build:
       context: ./backend
       dockerfile: Dockerfile.backend
-    container_name: su-backend
     ports:
       - "8000:8000"
-    networks:
-      - app-network
+    env_file:
+      - ./backend/.env
+    restart: always
 
   frontend:
+    image: sunguk1995/su-interactive-self-interview-frontend:latest
+    container_name: su-frontend
     build:
       context: ./frontend
       dockerfile: Dockerfile.frontend
-    container_name: su-frontend
     ports:
-      - "80:80"
+      - "5173:5173"
     depends_on:
       - backend
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    restart: always
