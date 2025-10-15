@@ -2,13 +2,14 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# requirements.txt 복사 (경로 수정됨)
-COPY backend/requirements.txt .
+# requirements.txt 복사
+COPY requirements.txt .
 
+# 의존성 설치
 RUN pip install --no-cache-dir -r requirements.txt
 
-# app 코드 복사 (경로 수정됨)
-COPY backend/app ./app
+# 애플리케이션 복사
+COPY app ./app
 
 EXPOSE 8000
 CMD ["python", "app/main.py"]

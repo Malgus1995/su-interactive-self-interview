@@ -20,9 +20,9 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.frontend
     ports:
-      - "5173:5173"
+      - "80:80"          # 👉 외부에서 접근시 프론트는 80 포트로 열림
     depends_on:
       - backend
     environment:
-      - VITE_API_BASE_URL=http://localhost:8000
+      - VITE_API_BASE_URL=http://backend:8000  # ✅ Docker 내부 통신
     restart: always

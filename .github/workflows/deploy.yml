@@ -1,4 +1,4 @@
-name: Deploy Fullstack App
+name: 🚀 Deploy Fullstack App
 
 on:
   push:
@@ -15,12 +15,29 @@ jobs:
       - name: 🐳 Login to Docker Hub
         run: echo "${{ secrets.SUJUNG_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
+      # 1️⃣ Build & Push Backend
       - name: 🏗️ Build backend image
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/su-interactive-self-interview-backend:latest -f backend/Dockerfile.backend .
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/su-interactive-self-interview-backend:latest \
+            -f backend/Dockerfile.backend ./backend
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/su-interactive-self-interview-backend:latest
 
+      # 2️⃣ Build & Push Frontend
       - name: 🏗️ Build frontend image
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/su-interactive-self-interview-frontend:latest -f frontend/Dockerfile.frontend .
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/su-interactive-self-interview-frontend:latest \
+            -f frontend/Dockerfile.frontend ./frontend
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/su-interactive-self-interview-frontend:latest
+
+      # 3️⃣ Remote Deploy (예: 서버에 ssh로 자동 배포)
+      - name: 🚀 Deploy to Remote Server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd ~/su-interactive-self-interview
+            git pull origin main
+            docker-compose pull
+            docker-compose up -d --remove-orphans
