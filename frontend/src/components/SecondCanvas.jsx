@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Phaser from "phaser";
-import secondRoomJson from "/src/assets/second_room.json";
+import secondRoomJson from "../assets/second_room.json";
 import ThirdCanvas from "./ThirdCanvas";
 import IntroCanvas from "./IntroCanvas";
 import axios from "axios"; // ✅ axios 추가

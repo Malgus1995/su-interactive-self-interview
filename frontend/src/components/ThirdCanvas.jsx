@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Phaser from "phaser";
-import thirdRoomJson from "/src/assets/third_room.json";
+import thirdRoomJson from "../assets/third_room.json";
 import playerPng from "/src/assets/tiles/player.png";
 import SecondCanvas from "./SecondCanvas";
 import LastCanvas from "./LastCanvas";

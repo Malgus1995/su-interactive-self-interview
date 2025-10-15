@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Phaser from "phaser";
-import mapJsonUrl from "/src/assets/start_map_json.json?url"; // ✅ Vite가 URL로 변환
+import mapJsonUrl from "../assets/start_map_json.json?url"; // ✅ Vite가 URL로 변환
 import SecondCanvas from "./SecondCanvas";
 import axios from "axios";
 

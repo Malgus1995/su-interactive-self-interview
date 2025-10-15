@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Phaser from "phaser";
-import lastRoomJson from "/src/assets/last_room.json"; // ← JSON 구조가 필요해서 모듈로 가져옴
+import lastRoomJson from "../assets/last_room.json"; // ← JSON 구조가 필요해서 모듈로 가져옴
 import IntroCanvas from "./IntroCanvas";
 import axios from "axios";
 
