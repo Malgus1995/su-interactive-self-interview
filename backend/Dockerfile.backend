@@ -1,17 +1,14 @@
-# ---------- 1단계: Python FastAPI ----------
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# 종속성 설치
-COPY requirements.txt .
+# requirements.txt 복사 (경로 수정됨)
+COPY backend/requirements.txt .
+
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 애플리케이션 복사
-COPY app ./app
+# app 코드 복사 (경로 수정됨)
+COPY backend/app ./app
 
-# 포트 개방
 EXPOSE 8000
-
-# Uvicorn 실행 (production mode)
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "app/main.py"]
