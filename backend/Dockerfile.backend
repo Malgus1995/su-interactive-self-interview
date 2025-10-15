@@ -1,10 +1,18 @@
+# ---------- 1단계: Python 기반 이미지 ----------
 FROM python:3.11-slim
+
+# 작업 디렉토리
 WORKDIR /app
 
+# 종속성 설치
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# 앱 코드 복사
 COPY app ./app
 
+# 포트 개방 (Render에서 자동 감지)
 EXPOSE 8000
+
+# ✅ FastAPI 실행 (Render / Docker 모두 호환)
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
