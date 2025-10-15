@@ -20,7 +20,7 @@ export default function ThirdCanvas({ setDialogText }) {
 
 
   const gameRef = useRef(null);
-  const BASE_URL = "/api/winter";
+  const BASE_URL = "/winter";
   const [goBackSecondRoom, setGoBackSecondRoom] = useState(false);
   const [enteredLastRoom, setEnteredLastRoom] = useState(false);
 

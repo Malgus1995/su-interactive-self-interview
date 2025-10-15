@@ -6,7 +6,7 @@ import axios from "axios";
 
 export default function IntroCanvas({ setDialogText, topOffset = 140 }) {
   // ✅ 도커/Nginx 환경에서는 /api → backend 로 프록시됨
-  const BASE_URL = "/api/summer";
+  const BASE_URL = "/summer";
   const gameRef = useRef(null);
   const [enteredSecondRoom, setEnteredSecondRoom] = useState(false);
 
