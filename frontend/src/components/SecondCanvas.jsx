@@ -7,7 +7,8 @@ import axios from "axios"; // ✅ axios 추가
 
 export default function SecondCanvas({ setDialogText }) {
   const gameRef = useRef(null);
-  const BASE_URL = "/autumn";
+  const BASE_API = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+  const BASE_URL = `${BASE_API}/autumn`;  
   const playerPng =  "assets/tiles/player.png";
   const [enteredThirdRoom, setEnteredThirdRoom] = useState(false);
   const [goBackToFirstRoom, setGoBackToFirstRoom] = useState(false);

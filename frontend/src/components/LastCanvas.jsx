@@ -9,7 +9,8 @@ export default function LastCanvas({ setDialogText }) {
   const [goIntroCanvas, setGoIntroCanvas] = useState(false);
 
   // ✅ 배포/도커 환경: Nginx가 /api → backend 로 프록시
-  const BASE_URL = "/spring";
+  const BASE_API = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+  const BASE_URL = `${BASE_API}/spring`;  
 
   // ✅ public/assets 아래에 실제 파일을 두세요.
   const PLAYER_IMG = "assets/tiles/player.png";

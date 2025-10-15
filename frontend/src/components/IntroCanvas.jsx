@@ -6,7 +6,8 @@ import axios from "axios";
 
 export default function IntroCanvas({ setDialogText, topOffset = 140 }) {
   // ✅ 도커/Nginx 환경에서는 /api → backend 로 프록시됨
-  const BASE_URL = "/summer";
+  const BASE_API = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+  const BASE_URL = `${BASE_API}/summer`;  
   const gameRef = useRef(null);
   const [enteredSecondRoom, setEnteredSecondRoom] = useState(false);
 

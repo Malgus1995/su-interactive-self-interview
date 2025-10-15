@@ -12,24 +12,18 @@ jobs:
       - name: 🧩 Checkout repository
         uses: actions/checkout@v4
 
+      # ✅ Docker Hub 로그인 (백엔드만)
       - name: 🐳 Login to Docker Hub
         run: echo "${{ secrets.SUJUNG_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      # 🧠 Backend build & push
+      # ✅ Backend build & push
       - name: 🏗️ Build backend image
         run: |
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/su-interactive-self-interview-backend:latest \
             -f backend/Dockerfile.backend ./backend
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/su-interactive-self-interview-backend:latest
 
-      # 🎨 Frontend build & push
-      - name: 🏗️ Build frontend image
-        run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/su-interactive-self-interview-frontend:latest \
-            -f frontend/Dockerfile.frontend ./frontend
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/su-interactive-self-interview-frontend:latest
-
-      # 🚀 Trigger Render backend redeploy
+      # ✅ Render backend 재배포
       - name: 🔁 Deploy backend to Render
         run: |
           curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_BACKEND_ID }}/deploys" \
@@ -37,8 +31,8 @@ jobs:
           -H "authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
           -d ''
 
-      # 🚀 Trigger Render frontend redeploy
-      - name: 🔁 Deploy frontend to Render
+      # ✅ Render frontend 재배포 (Static Site)
+      - name: 🔁 Deploy frontend (Static Site)
         run: |
           curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_FRONTEND_ID }}/deploys" \
           -H "accept: application/json" \

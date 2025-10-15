@@ -20,7 +20,8 @@ export default function ThirdCanvas({ setDialogText }) {
 
 
   const gameRef = useRef(null);
-  const BASE_URL = "/winter";
+  const BASE_API = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+  const BASE_URL = `${BASE_API}/winter`;  
   const [goBackSecondRoom, setGoBackSecondRoom] = useState(false);
   const [enteredLastRoom, setEnteredLastRoom] = useState(false);
 
