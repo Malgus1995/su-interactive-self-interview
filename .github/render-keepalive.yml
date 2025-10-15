@@ -1,0 +1,16 @@
+name: 🕒 Keep Render Backend Alive
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # 매 15분마다 실행
+  workflow_dispatch:          # 수동 실행도 가능
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🌐 Ping backend health endpoint
+        run: |
+          echo "Pinging Render backend to keep it alive..."
+          curl -s -o /dev/null -w "%{http_code}\n" \
+            https://su-interactive-self-interview-backend-itw3.onrender.com/health
