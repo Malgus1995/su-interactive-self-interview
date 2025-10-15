@@ -1,0 +1,34 @@
+name: Deploy Full App (Frontend + Backend)
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧩 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐳 Login to Docker Hub
+        run: |
+          echo "${{ secrets.SUJUNG_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: 🏗️ Build backend image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/su-interactive-self-interview-backend:latest -f backend/Dockerfile.backend .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/su-interactive-self-interview-backend:latest
+
+      - name: 🏗️ Build frontend image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/su-interactive-self-interview-frontend:latest -f frontend/Dockerfile.frontend .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/su-interactive-self-interview-frontend:latest
+
+      - name: 🚀 Deploy to Koyeb
+        uses: koyeb/koyeb-deploy-action@v1
+        with:
+          api_token: ${{ secrets.KOYEB_TOKEN }}
+          app_name: su-interactive-self-interview
+          compose: ./docker-compose.yml
