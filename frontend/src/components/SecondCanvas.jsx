@@ -268,7 +268,7 @@ const checkPoint = async (obj, key, endpoint) => {
 
   if (inside) {
     visited[key] = true;
-    setTimeout(() => (visited[key] = false), 2000);
+    setTimeout(() => (visited[key] = false), 4000);
 
     try {
       const res = await axios.get(`${BASE_URL}/${endpoint}`);
