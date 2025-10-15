@@ -6,17 +6,21 @@ import SecondCanvas from "./SecondCanvas";
 import LastCanvas from "./LastCanvas";
 
 // ✅ NPC 이미지 import
-import clararaPng from "/src/assets/clarara.png";
-import sunnyPng from "/src/assets/sunny.png";
-import skkoPng from "/src/assets/skko.png";
-import davidPng from "/src/assets/david.png";
-import kyminPng from "/src/assets/kymin.png";
-import richseaPng from "/src/assets/richsea.png";
-import europiaPng from "/src/assets/europia.png";
+
 import axios from "axios";
 export default function ThirdCanvas({ setDialogText }) {
+  const playerPng =  "assets/tiles/player.png";
+  const clararaPng = "/assets/clarara.png";
+  const sunnyPng = "/assets/sunny.png";
+  const skkoPng = "/assets/skko.png";
+  const davidPng = "/assets/david.png";
+  const kyminPng = "/assets/kymin.png";
+  const richseaPng = "/assets/richsea.png";
+  const europiaPng = "/assets/europia.png";
+
+
   const gameRef = useRef(null);
-  const BASE_URL = "http://127.0.0.1:8000/winter"; 
+  const BASE_URL = "/api/winter";
   const [goBackSecondRoom, setGoBackSecondRoom] = useState(false);
   const [enteredLastRoom, setEnteredLastRoom] = useState(false);
 
@@ -77,7 +81,7 @@ export default function ThirdCanvas({ setDialogText }) {
           thirdRoomJson.tilesets.forEach((ts) => {
             const key = `tileset_${ts.name}`;
             if (!this.textures.exists(key)) {
-              this.load.image(key, `/src/assets/${ts.image}`);
+              this.load.image(key, `assets/${ts.image}`);
             }
           });
 

@@ -28,9 +28,9 @@ export default function IdealType({ onClose }) {
           position: "relative",
         }}
       >
-        <h2 style={{ textAlign: "center", marginBottom: "10px" }}>이상형 명세 💛</h2>
+        <h2 style={{ textAlign: "center", marginBottom: "10px" }}>이상형</h2>
         <p style={{ fontSize: "15px", whiteSpace: "pre-line" }}>
-          34세 (1989년생), 183cm, 72kg, 분당 거주{"\n\n"}
+          30대 (1995년생), 185cm, 80kg, 창원 거주{"\n\n"}
           다정하고 자상하며 자기계발을 꾸준히 합니다.{"\n"}
           상대방과의 정서적 공감을 중요하게 생각하며,{"\n"}
           물질적 가치보다 사람의 내면을 더 소중히 여깁니다.{"\n\n"}

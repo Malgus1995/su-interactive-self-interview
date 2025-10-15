@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import Phaser from "phaser";
 import secondRoomJson from "/src/assets/second_room.json";
-import playerPng from "/src/assets/tiles/player.png";
 import ThirdCanvas from "./ThirdCanvas";
 import IntroCanvas from "./IntroCanvas";
 import axios from "axios"; // ✅ axios 추가
 
 export default function SecondCanvas({ setDialogText }) {
   const gameRef = useRef(null);
-  const BASE_URL = "http://127.0.0.1:8000/autumn"; 
+  const BASE_URL = "/api/autumn";
+  const playerPng =  "assets/tiles/player.png";
   const [enteredThirdRoom, setEnteredThirdRoom] = useState(false);
   const [goBackToFirstRoom, setGoBackToFirstRoom] = useState(false);
 
@@ -71,7 +71,7 @@ export default function SecondCanvas({ setDialogText }) {
           secondRoomJson.tilesets.forEach((ts) => {
             const key = `tileset_${ts.name}`;
             if (!this.textures.exists(key)) {
-              this.load.image(key, `/src/assets/${ts.image}`);
+              this.load.image(key, `assets/${ts.image}`);
             }
           });
         },

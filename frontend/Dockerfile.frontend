@@ -1,0 +1,23 @@
+# ---------- 1단계: React Build ----------
+FROM node:20-alpine AS build
+WORKDIR /app
+
+# 패키지 설치
+COPY package*.json ./
+RUN npm ci
+
+# 나머지 소스 복사 및 빌드
+COPY . .
+RUN npm run build
+
+# ---------- 2단계: Nginx Serve ----------
+FROM nginx:1.27-alpine
+
+# Nginx 설정 복사
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# 빌드 결과 복사
+COPY --from=build /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
