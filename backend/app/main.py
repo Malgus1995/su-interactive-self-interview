@@ -1,13 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import summer, about, autumn, winter,spring
+from app.routers import summer, about, autumn, winter, spring
 
 app = FastAPI(title="SU Interactive Portfolio")
 
-# ✅ CORS 허용 (로컬 & Render 모두)
+# ✅ CORS 허용 (로컬 & Render)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 필요 시 도메인 제한 가능
+    allow_origins=[
+        "https://su-interactive-frontend.onrender.com",
+        "http://localhost:5173"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -23,3 +26,7 @@ app.include_router(spring.router)
 @app.get("/")
 def read_root():
     return {"message": "SU Backend is running!"}
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}

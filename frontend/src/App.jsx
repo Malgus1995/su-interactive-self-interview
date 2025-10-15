@@ -10,8 +10,17 @@ export default function App() {
   const [dialogHistory, setDialogHistory] = useState([]);
   const [currentRoom, setCurrentRoom] = useState("intro");
   // ✅ IdealType 모달 상태
-const [showIdealModal, setShowIdealModal] = useState(false);
+  const [showIdealModal, setShowIdealModal] = useState(false);
 
+useEffect(() => {
+    const keepAlive = () => {
+      fetch(import.meta.env.VITE_API_BASE_URL + "/health").catch(() => {});
+    };
+    keepAlive();
+    const interval = setInterval(keepAlive, 10 * 60 * 1000); // 10분마다
+    return () => clearInterval(interval);
+  }, []);
+  
 // ✅ 버튼 클릭 리스너 재연결
 useEffect(() => {
   const attachIdealButtonEvents = () => {
